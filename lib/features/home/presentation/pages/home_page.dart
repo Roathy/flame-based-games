@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../notifiers/greeting_provider.dart';
 
 class HomePage extends ConsumerWidget {
@@ -17,6 +18,10 @@ class HomePage extends ConsumerWidget {
       ),
       body: Center(
         child: Text(greeting),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/game-template'),
+        child: const Icon(Icons.play_arrow),
       ),
     );
   }
