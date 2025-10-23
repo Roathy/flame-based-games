@@ -14,5 +14,16 @@ class LevelManager {
         'square_color': '0xFF00FF00',
       },
     ),
+    const GameLevelConfig(
+      id: '2',
+      name: 'Flying Words',
+      gameType: FlameGameType.rainingWordsGame,
+      difficulty: Difficulty.medium,
+      instruction: 'Tap the flying words in order!',
+      parameters: {
+        'word_list': ['hello', 'world', 'flutter', 'flame'],
+        'speed': 100.0,
+      },
+    ),
   ];
 }

@@ -20,7 +20,7 @@ class HomePage extends ConsumerWidget {
           GameActivityButton(
             title: 'Flying Words',
             onPressed: () {
-              // TODO: Implement navigation to Flying Words game
+              GoRouter.of(context).go('/game/2');
             },
           ),
         ],

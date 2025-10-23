@@ -3,8 +3,11 @@ import 'game_level_config.dart';
 
 abstract class MirappFlameGame extends FlameGame {
   final GameLevelConfig levelConfig;
+  final Function(bool success) onGameFinishedCallback;
 
-  MirappFlameGame({required this.levelConfig});
+  MirappFlameGame({required this.levelConfig, required this.onGameFinishedCallback});
 
-  void onGameFinished(bool success);
+  void onGameFinished(bool success) {
+    onGameFinishedCallback(success);
+  }
 }

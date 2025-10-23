@@ -2,7 +2,7 @@
 import '../../../core/games/domain/entities/mirapp_flame_game.dart';
 
 class TapGame extends MirappFlameGame {
-  TapGame({required super.levelConfig});
+  TapGame({required super.levelConfig, required super.onGameFinishedCallback});
 
   @override
   Future<void> onLoad() async {
@@ -11,6 +11,6 @@ class TapGame extends MirappFlameGame {
 
   @override
   void onGameFinished(bool success) {
-    // TODO: implement onGameFinished
+    onGameFinishedCallback(success);
   }
 }
