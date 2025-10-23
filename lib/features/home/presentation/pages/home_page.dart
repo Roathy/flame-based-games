@@ -13,19 +13,46 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Select a Level'),
+        title: const Text('Game Activities'),
       ),
-      body: ListView.builder(
-        itemCount: levels.length,
-        itemBuilder: (context, index) {
-          final level = levels[index];
-          return ListTile(
-            title: Text(level.name),
-            subtitle: Text(level.instruction),
-            onTap: () => context.push('/game/${level.id}'),
-          );
-        },
+      body: Column(
+        children: [
+          GameActivityButton(
+            title: 'Flying Words',
+            onPressed: () {
+              // TODO: Implement navigation to Flying Words game
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GameActivityButton extends StatelessWidget {
+  final String title;
+  final VoidCallback onPressed;
+
+  const GameActivityButton({
+    super.key,
+    required this.title,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60.0,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
       ),
     );
   }
