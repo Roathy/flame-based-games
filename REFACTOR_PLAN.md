@@ -45,51 +45,19 @@ This will be a multi-phase process to ensure each part is built and verified cor
 
 ### Phase 1: Core Configuration Setup
 
-1.  **Create New Branch:** Create and switch to a new branch `feature/flame-game-core`.
-2.  **Define `FlameGameType` Enum:**
-    *   Create `lib/core/games/domain/enums/flame_game_type.dart`.
-    *   Add an enum `FlameGameType { TAP_GAME, DRAG_GAME, SEQUENCE_GAME }`.
-3.  **Define `Difficulty` Enum:**
-    *   Create `lib/core/games/domain/enums/difficulty.dart`.
-    *   Add an enum `Difficulty { EASY, MEDIUM, HARD }`.
-4.  **Define `GameLevelConfig` Entity:**
-    *   Create `lib/core/games/domain/entities/game_level_config.dart`.
-    *   This class will be the blueprint for every level in the game.
-    ```dart
-    import 'package:equatable/equatable.dart';
-    import '../enums/difficulty.dart';
-    import '../enums/flame_game_type.dart';
-
-    class GameLevelConfig extends Equatable {
-      final String id;
-      final String name;
-      final FlameGameType gameType;
-      final Difficulty difficulty;
-      final String instruction;
-      final Map<String, dynamic> parameters;
-
-      const GameLevelConfig({
-        required this.id,
-        required this.name,
-        required this.gameType,
-        required this.difficulty,
-        required this.instruction,
-        required this.parameters,
-      });
-
-      @override
-      List<Object?> get props => [id, name, gameType, difficulty, instruction, parameters];
-    }
-    ```
-5.  **Create `LevelManager`:**
+1.  **[x] Create New Branch:** Create and switch to a new branch `feature/flame-game-core`.
+2.  **[x] Define `FlameGameType` Enum:**
+3.  **[x] Define `Difficulty` Enum:**
+4.  **[x] Define `GameLevelConfig` Entity:**
+5.  **[x] Create `LevelManager`:**
     *   Create `lib/core/games/data/repositories/level_manager.dart`.
     *   This class will hold a hardcoded list of `GameLevelConfig` objects for now. It will be responsible for fetching level data.
-6.  **Register `LevelManager`:**
+6.  **[x] Register `LevelManager`:**
     *   Update `lib/core/di/injection_container.dart` to register the `LevelManager` as a singleton.
 
 ### Phase 2: Abstract Flame Game and Host Page
 
-1.  **Create `MirappFlameGame` Abstract Class:**
+1.  **[x] Create `MirappFlameGame` Abstract Class:**
     *   Create `lib/core/games/domain/entities/mirapp_flame_game.dart`.
     *   This will be the base class for all our Flame games.
     ```dart
@@ -104,35 +72,25 @@ This will be a multi-phase process to ensure each part is built and verified cor
       void onGameFinished(bool success);
     }
     ```
-2.  **Create Generic `FlameGameHostPage`:**
-    *   Create `lib/features/game_host/presentation/pages/flame_game_host_page.dart`.
-    *   This page will take a level ID, load the `GameLevelConfig` from the `LevelManager`, and use a factory to instantiate and display the correct `MirappFlameGame`.
-3.  **Update Router:**
+2.  **[x] Create Generic `FlameGameHostPage`:**
+3.  **[x] Update Router:**
     *   Modify `lib/core/router/app_router.dart` to include a route for `FlameGameHostPage`. This route will accept the level ID as a path parameter (e.g., `/game/:levelId`).
-4.  **Update Home Page:**
+4.  **[x] Update Home Page:**
     *   Modify `lib/features/home/presentation/pages/home_page.dart` to fetch the list of levels from the `LevelManager` and display them.
     *   When a user taps a level, it will navigate to `FlameGameHostPage` with the corresponding level ID.
 
 ### Phase 3: Refactor Existing Flame Game (`TemplateGame`)
 
-1.  **Rename and Move `TemplateGame`:**
-    *   Move `lib/features/game_template/flame/game.dart` to `lib/features/tap_game/flame/tap_game.dart`.
-    *   Rename the class `TemplateGame` to `TapGame`.
-2.  **Update `TapGame`:**
-    *   Make `TapGame` extend `MirappFlameGame`.
-    *   Its constructor will now accept the `GameLevelConfig`.
-    *   Replace any hardcoded values in the game with values from `levelConfig.parameters`.
-3.  **Update `LevelManager` Data:**
-    *   Add a sample `GameLevelConfig` for a "Tap Game" to the hardcoded list in `LevelManager`.
-4.  **Implement Game Factory:**
-    *   In `FlameGameHostPage`, create a factory function or class that looks at `levelConfig.gameType` and returns the appropriate game instance (e.g., `return TapGame(levelConfig: config);`).
-5.  **Cleanup:**
-    *   Delete the now-empty `lib/features/game_template` directory.
+1.  **[x] Rename and Move `TemplateGame`:**
+2.  **[x] Update `TapGame`:**
+3.  **[x] Implement Game Factory:**
+4.  **[x] Update `LevelManager` Data:**
+5.  **[x] Cleanup:**
 
 ### Phase 4: Verification
 
-1.  **Run Static Analysis:** Run `flutter analyze` to ensure there are no new warnings or errors.
-2.  **Test End-to-End Flow:**
+1.  **[x] Run Static Analysis:**
+2.  **[x] Test End-to-End Flow:**
     *   Launch the app.
     *   Verify the home page shows the sample "Tap Game" level from the `LevelManager`.
     *   Tap the level.
