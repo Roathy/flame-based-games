@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 class WordComponent extends TextComponent with TapCallbacks {
   final String word;
   final VoidCallback onTapped;
+  final double speed;
 
-  WordComponent({required this.word, required this.onTapped})
+  WordComponent({required this.word, required this.onTapped, required this.speed})
       : super(
           text: word,
           anchor: Anchor.center,

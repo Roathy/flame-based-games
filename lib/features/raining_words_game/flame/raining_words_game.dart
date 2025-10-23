@@ -29,9 +29,11 @@ class RainingWordsGame extends MirappFlameGame {
   void _addWordsToGame() {
     for (int i = 0; i < _wordList.length; i++) {
       final word = _wordList[i];
+      final randomSpeed = _speed * (0.5 + _random.nextDouble()); // Random speed between 0.5x and 1.5x of base speed
       final wordComponent = WordComponent(
         word: word,
         onTapped: () => _onWordTapped(word),
+        speed: randomSpeed,
       );
       add(wordComponent);
       _setWordPosition(wordComponent);
@@ -40,8 +42,8 @@ class RainingWordsGame extends MirappFlameGame {
 
   void _setWordPosition(WordComponent wordComponent) {
     wordComponent.position = Vector2(
-      _random.nextDouble() * (size.x - wordComponent.width),
-      _random.nextDouble() * (size.y - wordComponent.height),
+      wordComponent.width / 2 + _random.nextDouble() * (size.x - wordComponent.width),
+      -wordComponent.height - (_random.nextDouble() * size.y), // Start above screen with some randomness
     );
   }
 
@@ -50,7 +52,7 @@ class RainingWordsGame extends MirappFlameGame {
     super.update(dt);
 
     for (final component in children.whereType<WordComponent>()) {
-      component.position.y += _speed * dt;
+      component.position.y += component.speed * dt;
 
       if (component.position.y > size.y) {
         _setWordPosition(component);
