@@ -92,7 +92,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(_levelConfig!.name)),
+      appBar: AppBar(title: Text(_levelConfig!.name, style: Theme.of(context).appBarTheme.titleTextStyle)),
       body: Stack(
         children: [
           // Always render the game widget as the base layer
@@ -141,7 +141,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   Widget _buildFinishedScreen() {
     return GameOverlay(
       child: AlertDialog(
-        title: const Text('Game Over!'),
+        title: Text('Game Over!', style: Theme.of(context).textTheme.headlineMedium),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -172,7 +172,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   Widget _buildPausedScreen() {
     return GameOverlay(
       child: AlertDialog(
-        title: const Text('Game Paused'),
+        title: Text('Game Paused', style: Theme.of(context).textTheme.headlineMedium),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

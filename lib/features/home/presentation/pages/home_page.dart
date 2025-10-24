@@ -14,7 +14,7 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Game Activities'),
+        title: Text('Game Activities', style: Theme.of(context).appBarTheme.titleTextStyle),
       ),
       body: Column(
         children: [
@@ -63,7 +63,6 @@ class GameActivityButton extends StatelessWidget {
           onPressed: onPressed,
           child: Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
       ),
