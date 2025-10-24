@@ -92,45 +92,52 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(_levelConfig!.name)),
-      body: ValueListenableBuilder<GameStatus>(
-        valueListenable: _gameStatusNotifier,
-        builder: (context, status, child) {
-          switch (status) {
-            case GameStatus.initial:
-              return _buildInitialScreen();
-            case GameStatus.playing:
-              return GameWidget(game: _game!);
-            case GameStatus.finished:
-            case GameStatus.gameOver:
-              return _buildFinishedScreen();
-            case GameStatus.paused:
-              return _buildPausedScreen();
-          }
-        },
+      body: Stack(
+        children: [
+          // Always render the game widget as the base layer
+          GameWidget(game: _game!),
+          // Conditionally render overlays based on game status
+          ValueListenableBuilder<GameStatus>(
+            valueListenable: _gameStatusNotifier,
+            builder: (context, status, child) {
+              switch (status) {
+                case GameStatus.initial:
+                  return _buildInitialScreen();
+                case GameStatus.finished:
+                case GameStatus.gameOver:
+                  return _buildFinishedScreen();
+                case GameStatus.paused:
+                  return _buildPausedScreen();
+                case GameStatus.playing:
+                  return const SizedBox.shrink(); // No overlay when playing
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildInitialScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Ready to play ${_levelConfig!.name}?', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              _gameStatusNotifier.value = GameStatus.playing;
-              _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to start
-            },
-            child: const Text('Start Game'),
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black.withAlpha((255 * 0.7).round()), // Translucent black
+        child: Center(
+          child: Container(
+            width: double.infinity, // Uses all available width
+            height: 90, // Fixed height
+            color: Colors.blueGrey.withAlpha((255 * 0.8).round()), // Horizontal background
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  _gameStatusNotifier.value = GameStatus.playing;
+                  _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to start
+                },
+                child: const Text('Start Game'),
+              ),
+            ),
           ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => context.pop(),
-            child: const Text('Back to Home'),
-          ),
-        ],
+        ),
       ),
     );
   }
