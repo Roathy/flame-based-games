@@ -1,0 +1,1 @@
+enum GameStatus { initial, playing, paused, finished, gameOver }
