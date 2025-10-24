@@ -9,6 +9,7 @@ import '../../../../core/games/domain/entities/mirapp_flame_game.dart';
 import '../../../../core/games/domain/enums/flame_game_type.dart';
 import '../../../../core/games/domain/enums/game_status.dart';
 import '../../../tap_game/flame/tap_game.dart';
+import '../widgets/game_overlay.dart';
 
 class FlameGameHostPage extends StatefulWidget {
   final String levelId;
@@ -119,23 +120,18 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   }
 
   Widget _buildInitialScreen() {
-    return Positioned.fill(
+    return GameOverlay(
       child: Container(
-        color: Colors.black.withAlpha((255 * 0.7).round()), // Translucent black
+        width: double.infinity, // Uses all available width
+        height: 90, // Fixed height
+        color: Colors.blueGrey.withAlpha((255 * 0.8).round()), // Horizontal background
         child: Center(
-          child: Container(
-            width: double.infinity, // Uses all available width
-            height: 90, // Fixed height
-            color: Colors.blueGrey.withAlpha((255 * 0.8).round()), // Horizontal background
-            child: Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  _gameStatusNotifier.value = GameStatus.playing;
-                  _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to start
-                },
-                child: const Text('Start Game'),
-              ),
-            ),
+          child: ElevatedButton(
+            onPressed: () {
+              _gameStatusNotifier.value = GameStatus.playing;
+              _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to start
+            },
+            child: const Text('Start Game'),
           ),
         ),
       ),
@@ -143,49 +139,62 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   }
 
   Widget _buildFinishedScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Game Over!', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Reset game and play again
-              _loadGame(); // Reloads the game and sets status to initial
-            },
-            child: const Text('Play Again'),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => context.pop(),
-            child: const Text('Back to Home'),
-          ),
-        ],
+    return GameOverlay(
+      child: AlertDialog(
+        title: const Text('Game Over!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _gameStatusNotifier.value == GameStatus.finished
+                  ? 'Congratulations! You won!'
+                  : 'Better luck next time!',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                _loadGame(); // Reloads the game and sets status to initial
+              },
+              child: const Text('Play Again'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => context.pop(),
+              child: const Text('Back to Home'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPausedScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Game Paused', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              _gameStatusNotifier.value = GameStatus.playing;
-              _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to resume
-            },
-            child: const Text('Resume Game'),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => context.pop(),
-            child: const Text('Exit Game'),
-          ),
-        ],
+    return GameOverlay(
+      child: AlertDialog(
+        title: const Text('Game Paused'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'The game is currently paused.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                _gameStatusNotifier.value = GameStatus.playing;
+                _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to resume
+              },
+              child: const Text('Resume Game'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => context.pop(),
+              child: const Text('Exit Game'),
+            ),
+          ],
+        ),
       ),
     );
   }
