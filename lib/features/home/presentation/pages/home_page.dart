@@ -1,16 +1,17 @@
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/games/data/repositories/level_manager.dart';
+import '../../../../core/games/domain/entities/game_level_config.dart';
+import '../../../../core/games/domain/enums/flame_game_type.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final levels = LevelManager.levels;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Game Activities'),
@@ -20,7 +21,19 @@ class HomePage extends ConsumerWidget {
           GameActivityButton(
             title: 'Flying Words',
             onPressed: () {
-              GoRouter.of(context).go('/game/2');
+              final GameLevelConfig? rainingWordsLevel = LevelManager
+                  .levels
+                  .firstWhereOrNull(
+                    (level) => level.gameType == FlameGameType.rainingWordsGame,);
+              if (rainingWordsLevel != null) {
+                context.push('/game/${rainingWordsLevel.id}');
+              } else {
+                // Optionally show an error or a message if the level is not found
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Raining Words game level not found!')),
+                );
+              }
             },
           ),
         ],

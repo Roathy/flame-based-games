@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flame/game.dart';
-import 'package:flame_based_games/core/games/domain/entities/game_level_config.dart';
+
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
 import 'package:flame_based_games/features/raining_words_game/flame/word_component.dart';
 

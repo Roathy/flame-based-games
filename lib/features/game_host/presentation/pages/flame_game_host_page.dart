@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:flame/game.dart';
 import 'package:flame_based_games/features/raining_words_game/flame/raining_words_game.dart';
@@ -38,7 +39,7 @@ class FlameGameHostPage extends StatelessWidget {
         final levelConfig = snapshot.data!;
 
         void onGameFinished(bool success) {
-          Navigator.pop(context, success);
+          context.pop();
         }
 
         final game = _createGame(levelConfig, onGameFinished);
