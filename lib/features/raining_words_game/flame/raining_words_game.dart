@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:flame/game.dart';
 import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
 
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
+import 'package:flame_based_games/features/raining_words_game/data/word_data.dart';
 import 'package:flame_based_games/features/raining_words_game/flame/word_component.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +15,6 @@ class RainingWordsGame extends MirappFlameGame {
   int _wordsSpawned = 0;
   int _score = 0;
   final Random _random = Random();
-  Timer? _spawnTimer;
 
   RainingWordsGame({required super.levelConfig});
 
@@ -23,10 +22,23 @@ class RainingWordsGame extends MirappFlameGame {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    _wordList = (levelConfig.parameters['word_list'] as List<dynamic>)
-        .map((e) => e.toString())
-        .toList();
+    _wordList = _generateDynamicWordPool();
     _speed = levelConfig.parameters['speed'] as double;
+  }
+
+  List<String> _generateDynamicWordPool() {
+    final List<String> dynamicPool = [];
+    final List<List<String>> categories = WordData.allCategories;
+
+    for (int i = 0; i < 10; i++) { // 10 iterations to get 10 words from each category
+      for (final category in categories) {
+        if (category.isNotEmpty) {
+          dynamicPool.add(category[_random.nextInt(category.length)]);
+        }
+      }
+    }
+    dynamicPool.shuffle(_random);
+    return dynamicPool;
   }
 
   @override
@@ -37,7 +49,7 @@ class RainingWordsGame extends MirappFlameGame {
 
   @override
   void onRemove() {
-    _spawnTimer?.cancel();
+    removeAll(children.whereType<TimerComponent>());
     gameStatusNotifier.removeListener(_gameStatusListener);
     super.onRemove();
   }
@@ -52,22 +64,24 @@ class RainingWordsGame extends MirappFlameGame {
 
   void _startGame() {
     _resetGame(); // Ensure a clean start
-    _spawnTimer = Timer.periodic(const Duration(seconds: 1, milliseconds: 500), (timer) {
-      _spawnWord();
-    });
+    add(TimerComponent(
+      period: 1.5,
+      repeat: true,
+      onTick: _spawnWord,
+    ));
   }
 
   void _resetGame() {
     _currentWordIndex = 0;
     _score = 0;
     _wordsSpawned = 0;
-    _spawnTimer?.cancel();
+    removeAll(children.whereType<TimerComponent>());
     removeAll(children.whereType<WordComponent>()); // Clear existing words
   }
 
   void _spawnWord() {
     if (_wordsSpawned >= _wordList.length) {
-      _spawnTimer?.cancel();
+      removeAll(children.whereType<TimerComponent>());
       return;
     }
 
@@ -109,13 +123,22 @@ class RainingWordsGame extends MirappFlameGame {
       return; // Only update game logic if playing
     }
 
-    for (final component in children.whereType<WordComponent>()) {
+    // Check for words going off-screen
+    final wordsOnScreen = children.whereType<WordComponent>().toList();
+    for (final component in wordsOnScreen) {
       component.position.y += component.speed * dt;
 
       if (component.position.y > size.y) {
-        // When a word goes off-screen, treat it as a failure
-        onGameFinished(false);
-        break; // End game immediately
+        component.removeFromParent();
+      }
+    }
+
+    // Check for game completion (all words spawned and either tapped or gone off-screen)
+    if (_wordsSpawned >= _wordList.length && children.whereType<WordComponent>().isEmpty) {
+      if (_score >= _wordList.length) {
+        onGameFinished(true); // All words tapped successfully
+      } else {
+        onGameFinished(false); // Some words missed
       }
     }
   }
@@ -133,11 +156,11 @@ class RainingWordsGame extends MirappFlameGame {
       remove(tappedComponent);
 
       _currentWordIndex++;
-      if (_score >= _wordList.length) {
-        onGameFinished(true); // Game finished successfully
-      }
+      // Game completion check is now in update method
     } else {
-      onGameFinished(false); // Game finished with failure
+      // Tapped wrong word, game finishes with failure
+      onGameFinished(false);
     }
   }
 }
+

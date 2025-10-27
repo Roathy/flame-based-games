@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
+import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
 
 class WordComponent extends TextComponent with TapCallbacks {
