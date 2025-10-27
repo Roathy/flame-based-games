@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/games/data/repositories/level_manager.dart';
 import '../../../../core/games/domain/entities/game_level_config.dart';
-import '../../../../core/games/domain/enums/flame_game_type.dart';
+
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -14,24 +14,38 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Game Activities', style: Theme.of(context).appBarTheme.titleTextStyle),
+        title: Text('Flying Words', style: Theme.of(context).appBarTheme.titleTextStyle),
       ),
       body: Column(
         children: [
           GameActivityButton(
-            title: 'Flying Words',
+            title: 'Flying Words (Random)',
             onPressed: () {
-              final GameLevelConfig? rainingWordsLevel = LevelManager
-                  .levels
-                  .firstWhereOrNull(
-                    (level) => level.gameType == FlameGameType.rainingWordsGame,);
+              final GameLevelConfig? rainingWordsLevel = LevelManager.levels.firstWhereOrNull(
+                (level) => level.id == '2',
+              );
               if (rainingWordsLevel != null) {
                 context.push('/game/${rainingWordsLevel.id}');
               } else {
                 // Optionally show an error or a message if the level is not found
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Raining Words game level not found!')),
+                  const SnackBar(content: Text('Raining Words game level not found!')),
+                );
+              }
+            },
+          ),
+          GameActivityButton(
+            title: 'Flying Words (Shuffle Bag)',
+            onPressed: () {
+              final GameLevelConfig? rainingWordsLevel = LevelManager.levels.firstWhereOrNull(
+                (level) => level.id == '3',
+              );
+              if (rainingWordsLevel != null) {
+                context.push('/game/${rainingWordsLevel.id}');
+              } else {
+                // Optionally show an error or a message if the level is not found
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Raining Words game level not found!')),
                 );
               }
             },

@@ -11,6 +11,9 @@ import '../../../../core/games/domain/enums/game_status.dart';
 import '../../../tap_game/flame/tap_game.dart';
 import '../widgets/game_overlay.dart';
 
+
+import '../../../raining_words_game/domain/enums/shuffling_method.dart';
+
 class FlameGameHostPage extends StatefulWidget {
   final String levelId;
 
@@ -87,7 +90,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     if (_levelConfig == null || _game == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Error')),
-        body: const Center(child: Text('Level not found!')),
+        body: const Center(child: Text('Level not found!'))
       );
     }
 
@@ -132,18 +135,18 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
 
   Widget _buildInitialScreen() {
     return GameOverlay(
-      child: Container(
-        width: double.infinity, // Uses all available width
-        height: 90, // Fixed height
-        color: Colors.blueGrey.withAlpha((255 * 0.8).round()), // Horizontal background
-        child: Center(
-          child: ElevatedButton(
-            onPressed: () {
-              _gameStatusNotifier.value = GameStatus.playing;
-              _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to start
-            },
-            child: const Text('Start Game'),
-          ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                _gameStatusNotifier.value = GameStatus.playing;
+                _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to start
+              },
+              child: const Text('Start Game'),
+            ),
+          ],
         ),
       ),
     );
@@ -170,6 +173,13 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
                 return Text('Mistakes: $mistakes', style: const TextStyle(color: Colors.redAccent, fontSize: 24));
               },
             ),
+            if (rainingWordsGame.shufflingMethod == ShufflingMethod.shuffleBag)
+              ValueListenableBuilder<int>(
+                valueListenable: rainingWordsGame.timeNotifier,
+                builder: (context, time, child) {
+                  return Text('Time: $time', style: const TextStyle(color: Colors.white, fontSize: 24));
+                },
+              ),
           ],
         ),
       );

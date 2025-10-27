@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 class WordComponent extends TextComponent with TapCallbacks {
   final String word;
-  final VoidCallback onTapped;
+  final bool Function() onTapped;
   final double speed;
   final Color color;
   bool animationTriggered = false;
@@ -30,7 +30,7 @@ class WordComponent extends TextComponent with TapCallbacks {
           ),
         );
 
-  void shake() {
+  void shake({bool removeOnComplete = false}) {
     final originalPosition = position.clone();
     add(SequenceEffect(
       [
@@ -42,8 +42,12 @@ class WordComponent extends TextComponent with TapCallbacks {
         MoveEffect.to(originalPosition, EffectController(duration: 0.05)),
       ],
       onComplete: () {
-        // Ensure it ends exactly at the original position
-        position.setFrom(originalPosition);
+        if (removeOnComplete) {
+          removeFromParent();
+        } else {
+          // Ensure it ends exactly at the original position
+          position.setFrom(originalPosition);
+        }
       },
     ));
   }
@@ -75,8 +79,12 @@ class WordComponent extends TextComponent with TapCallbacks {
 
   @override
   void onTapDown(TapDownEvent event) {
-    _explode();
-    onTapped();
+    if (onTapped()) {
+      _explode();
+      removeFromParent();
+    } else {
+      shake(removeOnComplete: true);
+    }
   }
 
   void _explode() {

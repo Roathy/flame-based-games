@@ -23,6 +23,19 @@ class LevelManager {
       parameters: {
         'word_list': ['hello', 'world', 'flutter', 'flame'],
         'speed': 100.0,
+        'shuffling_method': 'random',
+      },
+    ),
+    const GameLevelConfig(
+      id: '3',
+      name: 'Flying Words (Shuffle Bag)',
+      gameType: FlameGameType.rainingWordsGame,
+      difficulty: Difficulty.medium,
+      instruction: 'Tap the flying words in order!',
+      parameters: {
+        'word_list': ['hello', 'world', 'flutter', 'flame'],
+        'speed': 100.0,
+        'shuffling_method': 'shuffleBag',
       },
     ),
   ];

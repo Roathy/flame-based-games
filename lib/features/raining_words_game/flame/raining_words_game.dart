@@ -4,13 +4,15 @@ import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
 
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
-import 'package:flame_based_games/features/raining_words_game/data/word_data.dart';
+import 'package:flame_based_games/features/raining_words_game/data/vocabulary_data.dart';
 import 'package:flame_based_games/features/raining_words_game/flame/word_component.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../domain/enums/shuffling_method.dart';
 
 class RainingWordsGame extends MirappFlameGame {
-  List<String> _wordList = [];
+  List<String> _wordList = []; // Used for ShufflingMethod.random
+  final List<String> _shuffleBag = []; // Used for ShufflingMethod.shuffleBag
   double _speed = 100.0;
   int _wordsSpawned = 0;
   final Random _random = Random();
@@ -20,11 +22,14 @@ class RainingWordsGame extends MirappFlameGame {
 
   final ValueNotifier<int> _scoreNotifier = ValueNotifier(0);
   final ValueNotifier<int> _mistakesNotifier = ValueNotifier(0);
+  final ValueNotifier<int> _timeNotifier = ValueNotifier(45);
 
   ValueNotifier<int> get scoreNotifier => _scoreNotifier;
   ValueNotifier<int> get mistakesNotifier => _mistakesNotifier;
+  ValueNotifier<int> get timeNotifier => _timeNotifier;
 
   late FlutterTts flutterTts;
+  late final ShufflingMethod shufflingMethod;
 
   RainingWordsGame({required super.levelConfig});
 
@@ -36,13 +41,33 @@ class RainingWordsGame extends MirappFlameGame {
     await flutterTts.setLanguage("en-US");
     await flutterTts.setSpeechRate(0.5);
 
-    _wordList = _generateDynamicWordPool();
     _speed = levelConfig.parameters['speed'] as double;
+    shufflingMethod = ShufflingMethod.values.firstWhere(
+      (e) => e.toString() == 'ShufflingMethod.${levelConfig.parameters['shuffling_method']}',
+      orElse: () => ShufflingMethod.random, // Default value if not found
+    );
+  }
+
+  void _initializeWordPool() {
+    switch (shufflingMethod) {
+      case ShufflingMethod.random:
+        _wordList = _generateDynamicWordPool();
+        break;
+      case ShufflingMethod.shuffleBag:
+        _fillShuffleBag();
+        break;
+      case ShufflingMethod.deckBased:
+        // TODO: Implement deck-based spawning
+        break;
+      case ShufflingMethod.weightedDistribution:
+        // TODO: Implement weighted distribution
+        break;
+    }
   }
 
   List<String> _generateDynamicWordPool() {
     final List<String> dynamicPool = [];
-    final List<List<String>> categories = WordData.allCategories;
+    final categories = VocabularyData.vocabularyCategories.values.toList();
 
     for (int i = 0; i < 10; i++) { // 10 iterations to get 10 words from each category
       for (final category in categories) {
@@ -53,6 +78,36 @@ class RainingWordsGame extends MirappFlameGame {
     }
     dynamicPool.shuffle(_random);
     return dynamicPool;
+  }
+
+  void _fillShuffleBag() {
+    _shuffleBag.clear();
+
+    // Determine the number of words from target category and other categories
+    // For example, 30% target words, 70% non-target words in a bag of 10
+    const int bagSize = 10;
+    const int targetWordsCount = 3;
+    const int otherWordsCount = bagSize - targetWordsCount;
+
+    // Add target words
+    for (int i = 0; i < targetWordsCount; i++) {
+      if (_targetCategory != null && _targetCategory!.isNotEmpty) {
+        _shuffleBag.add(_targetCategory![_random.nextInt(_targetCategory!.length)]);
+      }
+    }
+
+    // Add words from other categories
+    final otherCategories = VocabularyData.vocabularyCategories.values.where((cat) => cat != _targetCategory).toList();
+    for (int i = 0; i < otherWordsCount; i++) {
+      if (otherCategories.isNotEmpty) {
+        final randomCategory = otherCategories[_random.nextInt(otherCategories.length)];
+        if (randomCategory.isNotEmpty) {
+          _shuffleBag.add(randomCategory[_random.nextInt(randomCategory.length)]);
+        }
+      }
+    }
+
+    _shuffleBag.shuffle(_random);
   }
 
   @override
@@ -72,8 +127,7 @@ class RainingWordsGame extends MirappFlameGame {
   void _gameStatusListener() {
     if (gameStatusNotifier.value == GameStatus.playing) {
       _startGame();
-    }
-    else if (gameStatusNotifier.value == GameStatus.initial) {
+    } else if (gameStatusNotifier.value == GameStatus.initial) {
       _resetGame();
     }
   }
@@ -82,8 +136,12 @@ class RainingWordsGame extends MirappFlameGame {
     _resetGame(); // Ensure a clean start
 
     // Select a random target category
-    _targetCategory = WordData.allCategories[_random.nextInt(WordData.allCategories.length)];
-    _targetCategoryName = WordData.categoryNames[_targetCategory];
+    final categoryKeys = VocabularyData.vocabularyCategories.keys.toList();
+    _targetCategoryName = categoryKeys[_random.nextInt(categoryKeys.length)];
+    _targetCategory = VocabularyData.vocabularyCategories[_targetCategoryName];
+
+    // Initialize word pool based on shuffling method AFTER target category is selected
+    _initializeWordPool();
 
     // Announce the target category
     if (_targetCategoryName != null) {
@@ -95,6 +153,22 @@ class RainingWordsGame extends MirappFlameGame {
       repeat: true,
       onTick: _spawnWord,
     ));
+
+    if (shufflingMethod == ShufflingMethod.shuffleBag) {
+      add(TimerComponent(
+        period: 45,
+        onTick: () => onGameFinished(false),
+      ));
+      add(TimerComponent(
+        period: 1,
+        repeat: true,
+        onTick: () {
+          if (_timeNotifier.value > 0) {
+            _timeNotifier.value--;
+          }
+        },
+      ));
+    }
   }
 
   Future<void> replayCategoryAnnouncement() async {
@@ -106,22 +180,49 @@ class RainingWordsGame extends MirappFlameGame {
   void _resetGame() {
     _scoreNotifier.value = 0;
     _mistakesNotifier.value = 0;
+    _timeNotifier.value = 45;
     _wordsSpawned = 0;
     removeAll(children.whereType<TimerComponent>());
     removeAll(children.whereType<WordComponent>()); // Clear existing words
+    _wordList.clear(); // Clear _wordList for random method
+    _shuffleBag.clear(); // Clear _shuffleBag for shuffle bag method
   }
 
   void _spawnWord() {
-    if (_wordsSpawned >= _wordList.length) {
+    if (_wordsSpawned >= 100) { // Game ends after 100 words are spawned
       removeAll(children.whereType<TimerComponent>());
       return;
     }
 
-    final word = _wordList[_wordsSpawned];
+    String wordToSpawn;
+    switch (shufflingMethod) {
+      case ShufflingMethod.random:
+        if (_wordsSpawned >= _wordList.length) {
+          removeAll(children.whereType<TimerComponent>());
+          return;
+        }
+        wordToSpawn = _wordList[_wordsSpawned];
+        break;
+      case ShufflingMethod.shuffleBag:
+        if (_shuffleBag.isEmpty) {
+          _fillShuffleBag();
+        }
+        wordToSpawn = _shuffleBag.removeAt(0);
+        break;
+      case ShufflingMethod.deckBased:
+        // TODO: Implement deck-based spawning
+        wordToSpawn = "DeckWord"; // Placeholder
+        break;
+      case ShufflingMethod.weightedDistribution:
+        // TODO: Implement weighted distribution
+        wordToSpawn = "WeightedWord"; // Placeholder
+        break;
+    }
+
     final randomSpeed = _speed * (0.5 + _random.nextDouble());
     final wordComponent = WordComponent(
-      word: word,
-      onTapped: () => _onWordTapped(word),
+      word: wordToSpawn,
+      onTapped: () => _onWordTapped(wordToSpawn),
       speed: randomSpeed,
       color: _generateReadableColor(),
     );
@@ -178,35 +279,25 @@ class RainingWordsGame extends MirappFlameGame {
         }
       }
     }
-
-    // Check for game completion (all words spawned and either tapped or gone off-screen)
-    if (_wordsSpawned >= _wordList.length && children.whereType<WordComponent>().isEmpty) {
-      // Calculate how many words from the target category were in the _wordList
-      final int targetWordsInPool = _wordList.where((word) => _targetCategory!.contains(word)).length;
-
-      if (_scoreNotifier.value >= targetWordsInPool) {
-        onGameFinished(true); // All target words tapped successfully
-      } else {
-        onGameFinished(false); // Some target words missed
-      }
-    }
   }
 
-  void _onWordTapped(String tappedWord) {
+  bool _onWordTapped(String tappedWord) {
     if (gameStatusNotifier.value != GameStatus.playing) {
-      return; // Only process taps if playing
+      return false;
     }
-
-    final tappedComponent = children.whereType<WordComponent>().firstWhere(
-          (element) => element.word == tappedWord,
-        );
-    remove(tappedComponent);
 
     if (_targetCategory!.contains(tappedWord)) {
       _scoreNotifier.value++;
+      if (shufflingMethod == ShufflingMethod.shuffleBag) {
+        if (_scoreNotifier.value >= 10) {
+          onGameFinished(true);
+        }
+        _spawnWord();
+      }
+      return true;
     } else {
       _mistakesNotifier.value++;
+      return false;
     }
   }
 }
-
