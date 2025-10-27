@@ -7,20 +7,34 @@ import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.d
 import 'package:flame_based_games/features/raining_words_game/data/word_data.dart';
 import 'package:flame_based_games/features/raining_words_game/flame/word_component.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class RainingWordsGame extends MirappFlameGame {
   List<String> _wordList = [];
   double _speed = 100.0;
-  int _currentWordIndex = 0;
   int _wordsSpawned = 0;
-  int _score = 0;
   final Random _random = Random();
+
+  List<String>? _targetCategory;
+  String? _targetCategoryName;
+
+  final ValueNotifier<int> _scoreNotifier = ValueNotifier(0);
+  final ValueNotifier<int> _mistakesNotifier = ValueNotifier(0);
+
+  ValueNotifier<int> get scoreNotifier => _scoreNotifier;
+  ValueNotifier<int> get mistakesNotifier => _mistakesNotifier;
+
+  late FlutterTts flutterTts;
 
   RainingWordsGame({required super.levelConfig});
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+    flutterTts = FlutterTts();
+    await flutterTts.setLanguage("en-US");
+    await flutterTts.setSpeechRate(0.5);
 
     _wordList = _generateDynamicWordPool();
     _speed = levelConfig.parameters['speed'] as double;
@@ -51,19 +65,31 @@ class RainingWordsGame extends MirappFlameGame {
   void onRemove() {
     removeAll(children.whereType<TimerComponent>());
     gameStatusNotifier.removeListener(_gameStatusListener);
+    flutterTts.stop();
     super.onRemove();
   }
 
   void _gameStatusListener() {
     if (gameStatusNotifier.value == GameStatus.playing) {
       _startGame();
-    } else if (gameStatusNotifier.value == GameStatus.initial) {
+    }
+    else if (gameStatusNotifier.value == GameStatus.initial) {
       _resetGame();
     }
   }
 
-  void _startGame() {
+  void _startGame() async {
     _resetGame(); // Ensure a clean start
+
+    // Select a random target category
+    _targetCategory = WordData.allCategories[_random.nextInt(WordData.allCategories.length)];
+    _targetCategoryName = WordData.categoryNames[_targetCategory];
+
+    // Announce the target category
+    if (_targetCategoryName != null) {
+      await flutterTts.speak("Tap all the words from the category: $_targetCategoryName");
+    }
+
     add(TimerComponent(
       period: 1.5,
       repeat: true,
@@ -71,9 +97,15 @@ class RainingWordsGame extends MirappFlameGame {
     ));
   }
 
+  Future<void> replayCategoryAnnouncement() async {
+    if (_targetCategoryName != null) {
+      await flutterTts.speak("Tap all the words from the category: $_targetCategoryName");
+    }
+  }
+
   void _resetGame() {
-    _currentWordIndex = 0;
-    _score = 0;
+    _scoreNotifier.value = 0;
+    _mistakesNotifier.value = 0;
     _wordsSpawned = 0;
     removeAll(children.whereType<TimerComponent>());
     removeAll(children.whereType<WordComponent>()); // Clear existing words
@@ -129,16 +161,33 @@ class RainingWordsGame extends MirappFlameGame {
       component.position.y += component.speed * dt;
 
       if (component.position.y > size.y) {
-        component.removeFromParent();
+        if (!component.animationTriggered) {
+          component.animationTriggered = true;
+          if (_targetCategory!.contains(component.word)) {
+            // If a word from the target category is missed, shake other words and bounce
+            for (final otherComponent in wordsOnScreen) {
+              if (otherComponent != component) {
+                otherComponent.shake();
+              }
+            }
+            component.bounceAndDisappear();
+          } else {
+            // Words from other categories just disappear
+            component.removeFromParent();
+          }
+        }
       }
     }
 
     // Check for game completion (all words spawned and either tapped or gone off-screen)
     if (_wordsSpawned >= _wordList.length && children.whereType<WordComponent>().isEmpty) {
-      if (_score >= _wordList.length) {
-        onGameFinished(true); // All words tapped successfully
+      // Calculate how many words from the target category were in the _wordList
+      final int targetWordsInPool = _wordList.where((word) => _targetCategory!.contains(word)).length;
+
+      if (_scoreNotifier.value >= targetWordsInPool) {
+        onGameFinished(true); // All target words tapped successfully
       } else {
-        onGameFinished(false); // Some words missed
+        onGameFinished(false); // Some target words missed
       }
     }
   }
@@ -148,18 +197,15 @@ class RainingWordsGame extends MirappFlameGame {
       return; // Only process taps if playing
     }
 
-    if (tappedWord == _wordList[_currentWordIndex]) {
-      _score++;
-      final tappedComponent = children.whereType<WordComponent>().firstWhere(
-            (element) => element.word == tappedWord,
-          );
-      remove(tappedComponent);
+    final tappedComponent = children.whereType<WordComponent>().firstWhere(
+          (element) => element.word == tappedWord,
+        );
+    remove(tappedComponent);
 
-      _currentWordIndex++;
-      // Game completion check is now in update method
+    if (_targetCategory!.contains(tappedWord)) {
+      _scoreNotifier.value++;
     } else {
-      // Tapped wrong word, game finishes with failure
-      onGameFinished(false);
+      _mistakesNotifier.value++;
     }
   }
 }

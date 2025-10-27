@@ -92,7 +92,18 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(_levelConfig!.name, style: Theme.of(context).appBarTheme.titleTextStyle)),
+      appBar: AppBar(
+        title: Text(_levelConfig!.name, style: Theme.of(context).appBarTheme.titleTextStyle),
+        actions: [
+          if (_game is RainingWordsGame)
+            IconButton(
+              icon: const Icon(Icons.volume_up),
+              onPressed: () {
+                (_game as RainingWordsGame).replayCategoryAnnouncement();
+              },
+            ),
+        ],
+      ),
       body: Stack(
         children: [
           // Always render the game widget as the base layer
@@ -110,7 +121,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
                 case GameStatus.paused:
                   return _buildPausedScreen();
                 case GameStatus.playing:
-                  return const SizedBox.shrink(); // No overlay when playing
+                  return _buildPlayingOverlay(); // New overlay for playing state
               }
             },
           ),
@@ -136,6 +147,34 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildPlayingOverlay() {
+    if (_game is RainingWordsGame) {
+      final rainingWordsGame = _game as RainingWordsGame;
+      return Positioned(
+        top: 10,
+        right: 10,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            ValueListenableBuilder<int>(
+              valueListenable: rainingWordsGame.scoreNotifier,
+              builder: (context, score, child) {
+                return Text('Score: $score', style: const TextStyle(color: Colors.greenAccent, fontSize: 24));
+              },
+            ),
+            ValueListenableBuilder<int>(
+              valueListenable: rainingWordsGame.mistakesNotifier,
+              builder: (context, mistakes, child) {
+                return Text('Mistakes: $mistakes', style: const TextStyle(color: Colors.redAccent, fontSize: 24));
+              },
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildFinishedScreen() {

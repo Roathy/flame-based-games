@@ -170,16 +170,56 @@ class WordData {
     'organized', 'disorganized', 'happy', 'sad', 'angry', 'calm', 'excited', 'nervous', 'brave',
   ];
 
-  static const List<List<String>> allCategories = [
-    greetingsWords,
-    personalInfoWords,
-    numbersWords,
-    colorsWords,
-    daysOfWeekWords,
-    familyRelationshipWords,
-    dailyRoutinesWords,
-    foodAndDrinksWords,
-    houseObjectsWords,
-    clothingAppearanceWords,
-  ];
-}
+    static const Map<List<String>, String> categoryNames = {
+
+      greetingsWords: "Greetings and personal introductions",
+
+      personalInfoWords: "Personal information",
+
+      numbersWords: "Numbers",
+
+      colorsWords: "Colors",
+
+      daysOfWeekWords: "Days of the week",
+
+      familyRelationshipWords: "Family and relationships",
+
+      dailyRoutinesWords: "Daily routines and basic activities",
+
+      foodAndDrinksWords: "Food and drinks",
+
+      houseObjectsWords: "Objects and places in the house",
+
+      clothingAppearanceWords: "Clothing and physical appearance",
+
+    };
+
+  
+
+    static const List<List<String>> allCategories = [
+
+      greetingsWords,
+
+      personalInfoWords,
+
+      numbersWords,
+
+      colorsWords,
+
+      daysOfWeekWords,
+
+      familyRelationshipWords,
+
+      dailyRoutinesWords,
+
+      foodAndDrinksWords,
+
+      houseObjectsWords,
+
+      clothingAppearanceWords,
+
+    ];
+
+  }
+
+  
