@@ -268,21 +268,21 @@ class RainingWordsGame extends MirappFlameGame {
       component.position.y += component.speed * dt;
 
       if (component.position.y > size.y) {
-        if (!component.animationTriggered) {
-          component.animationTriggered = true;
-          if (_targetCategory!.contains(component.word)) {
-            // If a word from the target category is missed, shake other words and bounce
-            for (final otherComponent in wordsOnScreen) {
-              if (otherComponent != component) {
-                otherComponent.shake();
-              }
-            }
-            component.bounceAndDisappear();
-          } else {
-            // Words from other categories just disappear
-            component.removeFromParent();
-          }
-        }
+                  if (!component.animationTriggered) {
+                    component.animationTriggered = true;
+                    if (_targetCategory!.contains(component.word)) {
+                      _mistakesNotifier.value++;
+                      // If a word from the target category is missed, shake other words and bounce
+                      for (final otherComponent in wordsOnScreen) {
+                        if (otherComponent != component) {
+                          otherComponent.shake();
+                        }
+                      }
+                      component.bounceAndDisappear();
+                    } else {
+                      // Words from other categories just disappear
+                      component.removeFromParent();
+                    }        }
       }
     }
   }
