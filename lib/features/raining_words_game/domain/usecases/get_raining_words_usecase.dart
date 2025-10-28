@@ -7,6 +7,6 @@ class GetRainingWordsUseCase {
   GetRainingWordsUseCase(this.repository);
 
   Future<List<RainingWord>> call(List<String> wordList) async {
-    return await repository.getFlyingWords(wordList);
+    return await repository.getRainingWords(wordList);
   }
 }

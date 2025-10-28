@@ -16,10 +16,10 @@ class LevelManager {
     ),
     const GameLevelConfig(
       id: '2',
-      name: 'Flying Words',
+      name: 'Raining Words',
       gameType: FlameGameType.rainingWordsGame,
       difficulty: Difficulty.medium,
-      instruction: 'Tap the flying words in order!',
+      instruction: 'Tap the raining words in order!',
       parameters: {
         'word_list': ['hello', 'world', 'flutter', 'flame'],
         'speed': 100.0,
@@ -28,10 +28,10 @@ class LevelManager {
     ),
     const GameLevelConfig(
       id: '3',
-      name: 'Flying Words (Shuffle Bag)',
+      name: 'Raining Words (Shuffle Bag)',
       gameType: FlameGameType.rainingWordsGame,
       difficulty: Difficulty.medium,
-      instruction: 'Tap the flying words in order!',
+      instruction: 'Tap the raining words in order!',
       parameters: {
         'word_list': ['hello', 'world', 'flutter', 'flame'],
         'speed': 100.0,

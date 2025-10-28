@@ -12,7 +12,7 @@ Future<void> init() async {
   // Register services and repositories here
   sl.registerLazySingleton(() => LevelManager());
 
-  // Flying Words Game
+  // Raining Words Game
   sl.registerLazySingleton<RainingWordsLocalDataSource>(
     () => RainingWordsLocalDataSourceImpl(),
   );

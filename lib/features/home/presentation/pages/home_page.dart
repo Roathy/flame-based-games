@@ -14,12 +14,12 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Flying Words', style: Theme.of(context).appBarTheme.titleTextStyle),
+        title: Text('Raining Words', style: Theme.of(context).appBarTheme.titleTextStyle),
       ),
       body: Column(
         children: [
           GameActivityButton(
-            title: 'Flying Words (Random)',
+            title: 'Raining Words (Random)',
             onPressed: () {
               final GameLevelConfig? rainingWordsLevel = LevelManager.levels.firstWhereOrNull(
                 (level) => level.id == '2',
@@ -35,7 +35,7 @@ class HomePage extends ConsumerWidget {
             },
           ),
           GameActivityButton(
-            title: 'Flying Words (Shuffle Bag)',
+            title: 'Raining Words (Shuffle Bag)',
             onPressed: () {
               final GameLevelConfig? rainingWordsLevel = LevelManager.levels.firstWhereOrNull(
                 (level) => level.id == '3',

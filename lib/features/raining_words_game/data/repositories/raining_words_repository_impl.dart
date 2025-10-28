@@ -8,7 +8,7 @@ class RainingWordsRepositoryImpl implements RainingWordsRepository {
   RainingWordsRepositoryImpl({required this.localDataSource});
 
   @override
-  Future<List<RainingWord>> getFlyingWords(List<String> wordList) async {
-    return await localDataSource.getFlyingWords(wordList);
+  Future<List<RainingWord>> getRainingWords(List<String> wordList) async {
+    return await localDataSource.getRainingWords(wordList);
   }
 }
