@@ -24,8 +24,11 @@ class RainingWordsGame extends MirappFlameGame {
   final ValueNotifier<int> _mistakesNotifier = ValueNotifier(0);
   final ValueNotifier<int> _timeNotifier = ValueNotifier(45);
 
+  @override
   ValueNotifier<int> get scoreNotifier => _scoreNotifier;
+  @override
   ValueNotifier<int> get mistakesNotifier => _mistakesNotifier;
+  @override
   ValueNotifier<int> get timeNotifier => _timeNotifier;
 
   late FlutterTts flutterTts;

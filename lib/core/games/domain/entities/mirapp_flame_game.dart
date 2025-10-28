@@ -7,6 +7,10 @@ abstract class MirappFlameGame extends FlameGame {
   final GameLevelConfig levelConfig;
   final ValueNotifier<GameStatus> gameStatusNotifier = ValueNotifier(GameStatus.initial);
 
+  ValueNotifier<int> get scoreNotifier;
+  ValueNotifier<int> get mistakesNotifier;
+  ValueNotifier<int> get timeNotifier;
+
   MirappFlameGame({required this.levelConfig});
 
   void onGameFinished(bool success) {

@@ -13,7 +13,6 @@ import '../widgets/game_overlay.dart';
 
 
 import '../../../bouncing_words_game/flame/bouncing_words_game.dart';
-import '../../../raining_words_game/domain/enums/shuffling_method.dart';
 
 class FlameGameHostPage extends StatefulWidget {
   final String levelId;
@@ -156,38 +155,33 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   }
 
   Widget _buildPlayingOverlay() {
-    if (_game is RainingWordsGame) {
-      final rainingWordsGame = _game as RainingWordsGame;
-      return Positioned(
-        top: 10,
-        right: 10,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            ValueListenableBuilder<int>(
-              valueListenable: rainingWordsGame.scoreNotifier,
-              builder: (context, score, child) {
-                return Text('Score: $score', style: const TextStyle(color: Colors.greenAccent, fontSize: 24));
-              },
-            ),
-            ValueListenableBuilder<int>(
-              valueListenable: rainingWordsGame.mistakesNotifier,
-              builder: (context, mistakes, child) {
-                return Text('Mistakes: $mistakes', style: const TextStyle(color: Colors.redAccent, fontSize: 24));
-              },
-            ),
-            if (rainingWordsGame.shufflingMethod == ShufflingMethod.shuffleBag)
-              ValueListenableBuilder<int>(
-                valueListenable: rainingWordsGame.timeNotifier,
-                builder: (context, time, child) {
-                  return Text('Time: $time', style: const TextStyle(color: Colors.white, fontSize: 24));
-                },
-              ),
-          ],
-        ),
-      );
-    }
-    return const SizedBox.shrink();
+    return Positioned(
+      top: 10,
+      right: 10,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          ValueListenableBuilder<int>(
+            valueListenable: _game!.scoreNotifier,
+            builder: (context, score, child) {
+              return Text('Score: $score', style: const TextStyle(color: Colors.greenAccent, fontSize: 24));
+            },
+          ),
+          ValueListenableBuilder<int>(
+            valueListenable: _game!.mistakesNotifier,
+            builder: (context, mistakes, child) {
+              return Text('Mistakes: $mistakes', style: const TextStyle(color: Colors.redAccent, fontSize: 24));
+            },
+          ),
+          ValueListenableBuilder<int>(
+            valueListenable: _game!.timeNotifier,
+            builder: (context, time, child) {
+              return Text('Time: $time', style: const TextStyle(color: Colors.white, fontSize: 24));
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildFinishedScreen() {
