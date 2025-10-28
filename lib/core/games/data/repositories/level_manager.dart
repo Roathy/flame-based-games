@@ -38,5 +38,13 @@ class LevelManager {
         'shuffling_method': 'shuffleBag',
       },
     ),
+    const GameLevelConfig(
+      id: '4',
+      name: 'Bouncing Words',
+      gameType: FlameGameType.bouncingWordsGame,
+      difficulty: Difficulty.easy,
+      instruction: 'Tap the bouncing words!',
+      parameters: {},
+    ),
   ];
 }

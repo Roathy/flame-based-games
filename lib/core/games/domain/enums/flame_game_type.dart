@@ -1,1 +1,1 @@
-enum FlameGameType { tapGame, dragGame, sequenceGame, rainingWordsGame }
+enum FlameGameType { tapGame, dragGame, sequenceGame, rainingWordsGame, bouncingWordsGame }

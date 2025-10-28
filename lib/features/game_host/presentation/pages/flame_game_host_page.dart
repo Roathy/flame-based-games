@@ -12,6 +12,7 @@ import '../../../tap_game/flame/tap_game.dart';
 import '../widgets/game_overlay.dart';
 
 
+import '../../../bouncing_words_game/flame/bouncing_words_game.dart';
 import '../../../raining_words_game/domain/enums/shuffling_method.dart';
 
 class FlameGameHostPage extends StatefulWidget {
@@ -65,6 +66,8 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
         return TapGame(levelConfig: config);
       case FlameGameType.rainingWordsGame:
         return RainingWordsGame(levelConfig: config);
+      case FlameGameType.bouncingWordsGame:
+        return BouncingWordsGame(levelConfig: config);
       default:
         throw UnimplementedError(
           'Game type not implemented: ${config.gameType}',

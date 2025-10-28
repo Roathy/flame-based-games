@@ -50,6 +50,21 @@ class HomePage extends ConsumerWidget {
               }
             },
           ),
+          GameActivityButton(
+            title: 'Bouncing Words',
+            onPressed: () {
+              final GameLevelConfig? bouncingWordsLevel = LevelManager.levels.firstWhereOrNull(
+                (level) => level.id == '4',
+              );
+              if (bouncingWordsLevel != null) {
+                context.push('/game/\${bouncingWordsLevel.id}');
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Bouncing Words game level not found!')),
+                );
+              }
+            },
+          ),
         ],
       ),
     );
