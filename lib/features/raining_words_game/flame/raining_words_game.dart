@@ -31,6 +31,9 @@ class RainingWordsGame extends MirappFlameGame {
   late FlutterTts flutterTts;
   late final ShufflingMethod shufflingMethod;
 
+  TimerComponent? _spawnTimer;
+  TimerComponent? _boostTimer;
+
   RainingWordsGame({required super.levelConfig});
 
   @override
@@ -148,11 +151,12 @@ class RainingWordsGame extends MirappFlameGame {
       await flutterTts.speak("Tap all the words from the category: $_targetCategoryName");
     }
 
-    add(TimerComponent(
+    _spawnTimer = TimerComponent(
       period: 1.5,
       repeat: true,
       onTick: _spawnWord,
-    ));
+    );
+    add(_spawnTimer!);
 
     if (shufflingMethod == ShufflingMethod.shuffleBag) {
       add(TimerComponent(
@@ -182,6 +186,8 @@ class RainingWordsGame extends MirappFlameGame {
     _mistakesNotifier.value = 0;
     _timeNotifier.value = 45;
     _wordsSpawned = 0;
+    _spawnTimer = null;
+    _boostTimer = null;
     removeAll(children.whereType<TimerComponent>());
     removeAll(children.whereType<WordComponent>()); // Clear existing words
     _wordList.clear(); // Clear _wordList for random method
@@ -286,8 +292,23 @@ class RainingWordsGame extends MirappFlameGame {
       return false;
     }
 
-    if (_targetCategory!.contains(tappedWord)) {
+      if (_targetCategory!.contains(tappedWord)) {
       _scoreNotifier.value++;
+
+      // Speed boost logic
+      _boostTimer?.removeFromParent(); // Reset existing boost timer
+      _spawnTimer?.timer.limit = 1.5 / 2; // 2x speed
+
+      _boostTimer = TimerComponent(
+        period: 1, // 1 second
+        onTick: () {
+          _spawnTimer?.timer.limit = 1.5; // Revert to normal speed
+          _boostTimer?.removeFromParent();
+          _boostTimer = null;
+        },
+      );
+      add(_boostTimer!);
+
       if (shufflingMethod == ShufflingMethod.shuffleBag) {
         if (_scoreNotifier.value >= 10) {
           onGameFinished(true);

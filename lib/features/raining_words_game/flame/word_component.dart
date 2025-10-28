@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/particles.dart';
 import 'package:flame/effects.dart';
+import 'package:flame_based_games/features/raining_words_game/flame/fading_text_component.dart';
 import 'package:flutter/material.dart';
 
 class WordComponent extends TextComponent with TapCallbacks {
@@ -81,6 +82,28 @@ class WordComponent extends TextComponent with TapCallbacks {
   void onTapDown(TapDownEvent event) {
     if (onTapped()) {
       _explode();
+
+      // Add +1 text animation
+      final scoreIndicator = FadingTextComponent(
+        text: '+1!',
+        anchor: Anchor.center,
+        position: position,
+        textRenderer: TextPaint(
+          style: const TextStyle(
+            color: Colors.green,
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+      parent?.add(scoreIndicator);
+      scoreIndicator.add(
+        SequenceEffect([
+          MoveEffect.by(Vector2(0, -20), EffectController(duration: 0.5)),
+          OpacityEffect.to(0, EffectController(duration: 0.5)),
+        ], onComplete: () => scoreIndicator.removeFromParent()),
+      );
+
       removeFromParent();
     } else {
       shake(removeOnComplete: true);
