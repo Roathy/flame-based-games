@@ -20,7 +20,7 @@ class FadingTextComponent extends TextComponent implements OpacityProvider {
     final originalStyle = (textRenderer as TextPaint).style;
     textRenderer = TextPaint(
       style: originalStyle.copyWith(
-        color: originalStyle.color?.withOpacity(value),
+        color: originalStyle.color?.withAlpha((255 * value).round()),
       ),
     );
   }

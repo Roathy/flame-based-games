@@ -57,7 +57,7 @@ class HomePage extends ConsumerWidget {
                 (level) => level.id == '4',
               );
               if (bouncingWordsLevel != null) {
-                context.push('/game/\${bouncingWordsLevel.id}');
+                context.push('/game/${bouncingWordsLevel.id}');
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Bouncing Words game level not found!')),

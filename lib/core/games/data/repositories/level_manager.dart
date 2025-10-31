@@ -1,3 +1,4 @@
+import 'package:flame_based_games/features/bouncing_words_game/domain/entities/bouncing_words_game_parameters.dart';
 import '../../domain/entities/game_level_config.dart';
 import '../../domain/enums/difficulty.dart';
 import '../../domain/enums/flame_game_type.dart';
@@ -39,12 +40,17 @@ class LevelManager {
       },
     ),
     const GameLevelConfig(
-      id: '4',
-      name: 'Bouncing Words',
-      gameType: FlameGameType.bouncingWordsGame,
-      difficulty: Difficulty.easy,
-      instruction: 'Tap the bouncing words!',
-      parameters: {},
-    ),
+        id: '4',
+        name: 'Bouncing Words',
+        gameType: FlameGameType.bouncingWordsGame,
+        difficulty: Difficulty.easy,
+        instruction: 'Tap the bouncing words!',
+        bouncingWordsGameParameters: BouncingWordsGameParameters(
+          wordPool: ['apple', 'banana', 'cherry', 'date', 'elderberry'],
+          wordCount: 5,
+          wordSpeed: 80.0,
+          timeLimit: 45,
+          targetScore: 10,
+        )),
   ];
 }

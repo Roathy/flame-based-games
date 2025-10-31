@@ -1,0 +1,27 @@
+
+import 'package:equatable/equatable.dart';
+
+class BouncingWordsGameParameters extends Equatable {
+  final List<String> wordPool;
+  final int wordCount;
+  final double wordSpeed;
+  final int timeLimit;
+  final int targetScore;
+
+  const BouncingWordsGameParameters({
+    required this.wordPool,
+    this.wordCount = 5,
+    this.wordSpeed = 100.0,
+    this.timeLimit = 45,
+    this.targetScore = 10,
+  });
+
+  @override
+  List<Object?> get props => [
+        wordPool,
+        wordCount,
+        wordSpeed,
+        timeLimit,
+        targetScore,
+      ];
+}

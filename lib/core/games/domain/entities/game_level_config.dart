@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flame_based_games/features/bouncing_words_game/domain/entities/bouncing_words_game_parameters.dart';
 import '../enums/difficulty.dart';
 import '../enums/flame_game_type.dart';
 
@@ -9,6 +10,7 @@ class GameLevelConfig extends Equatable {
   final Difficulty difficulty;
   final String instruction;
   final Map<String, dynamic> parameters;
+  final BouncingWordsGameParameters? bouncingWordsGameParameters;
 
   const GameLevelConfig({
     required this.id,
@@ -16,9 +18,10 @@ class GameLevelConfig extends Equatable {
     required this.gameType,
     required this.difficulty,
     required this.instruction,
-    required this.parameters,
+    this.parameters = const {},
+    this.bouncingWordsGameParameters,
   });
 
   @override
-  List<Object?> get props => [id, name, gameType, difficulty, instruction, parameters];
+  List<Object?> get props => [id, name, gameType, difficulty, instruction, parameters, bouncingWordsGameParameters];
 }
