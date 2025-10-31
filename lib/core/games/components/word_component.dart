@@ -4,20 +4,18 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/particles.dart';
 import 'package:flame/effects.dart';
-import 'package:flame_based_games/features/raining_words_game/flame/fading_text_component.dart';
+import 'package:flame_based_games/core/games/components/fading_text_component.dart';
 import 'package:flutter/material.dart';
 
 class WordComponent extends TextComponent with TapCallbacks {
   final String word;
   final bool Function() onTapped;
-  final double speed;
   final Color color;
   bool animationTriggered = false;
 
   WordComponent({
     required this.word,
     required this.onTapped,
-    required this.speed,
     required this.color,
   }) : super(
           text: word,

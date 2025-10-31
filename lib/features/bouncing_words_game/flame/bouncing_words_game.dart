@@ -1,12 +1,11 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flame_based_games/core/games/components/word_component.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
 import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
 import 'package:flame_based_games/features/bouncing_words_game/domain/entities/bouncing_words_game_parameters.dart';
 import 'package:flutter/material.dart';
-
-import 'bouncing_word_component.dart';
 
 class BouncingWordsGame extends MirappFlameGame {
   final ValueNotifier<int> _scoreNotifier = ValueNotifier(0);
@@ -22,6 +21,7 @@ class BouncingWordsGame extends MirappFlameGame {
 
   final Random _random = Random();
   late BouncingWordsGameParameters _gameParameters;
+  final Map<WordComponent, Vector2> _wordVelocities = {};
 
   TextComponent? _targetWordText;
   String? _currentTargetWord;
@@ -83,7 +83,8 @@ class BouncingWordsGame extends MirappFlameGame {
     _currentTargetWord = null;
     _targetWordText?.text = '';
     _activeWords.clear();
-    removeAll(children.whereType<BouncingWordComponent>());
+    _wordVelocities.clear();
+    removeAll(children.whereType<WordComponent>());
     removeAll(children.whereType<TimerComponent>());
   }
 
@@ -111,14 +112,31 @@ class BouncingWordsGame extends MirappFlameGame {
     final angle = _random.nextDouble() * 2 * pi;
     final velocity = Vector2(cos(angle), sin(angle)) * _gameParameters.wordSpeed;
 
-    final bouncingWord = BouncingWordComponent(
+    final wordComponent = WordComponent(
       word: word,
-      onTapped: _onWordTapped,
-      velocity: velocity,
       color: _generateReadableColor(),
+      onTapped: () {
+        if (word == _currentTargetWord) {
+          _scoreNotifier.value++;
+          _activeWords.remove(word);
+          _wordVelocities.removeWhere((key, _) => key.word == word);
+
+          if (_scoreNotifier.value >= _gameParameters.targetScore) {
+            onGameFinished(true);
+          } else {
+            _setNewTargetWord();
+          }
+          return true; // Correct tap
+        } else {
+          _mistakesNotifier.value++;
+          return false; // Incorrect tap
+        }
+      },
     );
-    bouncingWord.position = initialPosition;
-    add(bouncingWord);
+
+    wordComponent.position = initialPosition;
+    _wordVelocities[wordComponent] = velocity;
+    add(wordComponent);
   }
 
   void _setNewTargetWord() {
@@ -137,21 +155,6 @@ class BouncingWordsGame extends MirappFlameGame {
       0.7 + _random.nextDouble() * 0.3,
       0.6 + _random.nextDouble() * 0.2,
     ).toColor();
-  }
-
-  void _onWordTapped(String tappedWord) {
-    if (tappedWord == _currentTargetWord) {
-      _scoreNotifier.value++;
-      _activeWords.remove(tappedWord);
-
-      if (_scoreNotifier.value >= _gameParameters.targetScore) {
-        onGameFinished(true);
-      } else {
-        _setNewTargetWord();
-      }
-    } else {
-      _mistakesNotifier.value++;
-    }
   }
 
   GameStatus _internalGameStatus = GameStatus.initial;
@@ -175,6 +178,31 @@ class BouncingWordsGame extends MirappFlameGame {
 
     if (_internalGameStatus != GameStatus.playing) {
       return;
+    }
+
+    // Move and bounce words
+    for (final component in children.whereType<WordComponent>()) {
+      final velocity = _wordVelocities[component];
+      if (velocity == null) continue;
+
+      component.position += velocity * dt;
+
+      // Bounce off edges
+      if (component.position.x < 0) {
+        component.position.x = 0;
+        velocity.x *= -1;
+      } else if (component.position.x + component.size.x > size.x) {
+        component.position.x = size.x - component.size.x;
+        velocity.x *= -1;
+      }
+
+      if (component.position.y < 0) {
+        component.position.y = 0;
+        velocity.y *= -1;
+      } else if (component.position.y + component.size.y > size.y) {
+        component.position.y = size.y - component.size.y;
+        velocity.y *= -1;
+      }
     }
   }
 }

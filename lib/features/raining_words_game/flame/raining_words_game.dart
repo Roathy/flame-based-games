@@ -1,11 +1,10 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
-import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
-
+import 'package:flame_based_games/core/games/components/word_component.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
+import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
 import 'package:flame_based_games/features/raining_words_game/data/vocabulary_data.dart';
-import 'package:flame_based_games/features/raining_words_game/flame/word_component.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../domain/enums/shuffling_method.dart';
@@ -16,6 +15,7 @@ class RainingWordsGame extends MirappFlameGame {
   double _speed = 100.0;
   int _wordsSpawned = 0;
   final Random _random = Random();
+  final Map<WordComponent, double> _wordSpeeds = {};
 
   List<String>? _targetCategory;
   String? _targetCategoryName;
@@ -191,6 +191,7 @@ class RainingWordsGame extends MirappFlameGame {
     _wordsSpawned = 0;
     _spawnTimer = null;
     _boostTimer = null;
+    _wordSpeeds.clear();
     removeAll(children.whereType<TimerComponent>());
     removeAll(children.whereType<WordComponent>()); // Clear existing words
     _wordList.clear(); // Clear _wordList for random method
@@ -232,9 +233,9 @@ class RainingWordsGame extends MirappFlameGame {
     final wordComponent = WordComponent(
       word: wordToSpawn,
       onTapped: () => _onWordTapped(wordToSpawn),
-      speed: randomSpeed,
       color: _generateReadableColor(),
     );
+    _wordSpeeds[wordComponent] = randomSpeed;
     add(wordComponent);
     _setWordPosition(wordComponent);
     _wordsSpawned++;
@@ -268,7 +269,8 @@ class RainingWordsGame extends MirappFlameGame {
     // Check for words going off-screen
     final wordsOnScreen = children.whereType<WordComponent>().toList();
     for (final component in wordsOnScreen) {
-      component.position.y += component.speed * dt;
+      final speed = _wordSpeeds[component] ?? 0.0;
+      component.position.y += speed * dt;
 
       if (component.position.y > size.y) {
                   if (!component.animationTriggered) {
@@ -285,7 +287,9 @@ class RainingWordsGame extends MirappFlameGame {
                     } else {
                       // Words from other categories just disappear
                       component.removeFromParent();
-                    }        }
+                    }
+                  }
+                  _wordSpeeds.remove(component);
       }
     }
   }
