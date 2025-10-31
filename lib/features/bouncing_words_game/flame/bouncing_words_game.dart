@@ -5,6 +5,8 @@ import 'package:flame_based_games/core/games/components/word_component.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
 import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
 import 'package:flame_based_games/features/bouncing_words_game/domain/entities/bouncing_words_game_parameters.dart';
+import 'package:flame_based_games/core/di/injection_container.dart';
+import 'package:flame_based_games/features/bouncing_words_game/domain/repositories/bouncing_words_repository.dart';
 import 'package:flutter/material.dart';
 
 class BouncingWordsGame extends MirappFlameGame {
@@ -22,6 +24,7 @@ class BouncingWordsGame extends MirappFlameGame {
   final Random _random = Random();
   late BouncingWordsGameParameters _gameParameters;
   final Map<WordComponent, Vector2> _wordVelocities = {};
+  final BouncingWordsRepository _bouncingWordsRepository = sl<BouncingWordsRepository>();
 
   TextComponent? _targetWordText;
   String? _currentTargetWord;
@@ -33,6 +36,9 @@ class BouncingWordsGame extends MirappFlameGame {
   Future<void> onLoad() async {
     // Initialize all synchronous variables first.
     _gameParameters = levelConfig.bouncingWordsGameParameters ?? const BouncingWordsGameParameters(wordPool: []);
+
+    final distractorWords = await _bouncingWordsRepository.getDistractorWords();
+    _gameParameters = _gameParameters.copyWith(wordPool: distractorWords);
 
     _targetWordText = TextComponent(
       text: '',
@@ -118,13 +124,24 @@ class BouncingWordsGame extends MirappFlameGame {
       onTapped: () {
         if (word == _currentTargetWord) {
           _scoreNotifier.value++;
-          _activeWords.remove(word);
-          _wordVelocities.removeWhere((key, _) => key.word == word);
+
+          // --- Round Clear Logic ---
+          final otherWords = children.whereType<WordComponent>().where((c) => c.word != word).toList();
+          for (final otherWord in otherWords) {
+            otherWord.explode();
+            otherWord.removeFromParent();
+            _wordVelocities.remove(otherWord);
+            _activeWords.remove(otherWord.word);
+          }
 
           if (_scoreNotifier.value >= _gameParameters.targetScore) {
             onGameFinished(true);
           } else {
-            _setNewTargetWord();
+            // Short delay before starting the next round
+            add(TimerComponent(period: 0.5, onTick: () {
+              _spawnWords();
+              _setNewTargetWord();
+            }));
           }
           return true; // Correct tap
         } else {

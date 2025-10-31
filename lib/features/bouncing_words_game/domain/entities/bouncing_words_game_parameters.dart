@@ -16,6 +16,22 @@ class BouncingWordsGameParameters extends Equatable {
     this.targetScore = 10,
   });
 
+  BouncingWordsGameParameters copyWith({
+    List<String>? wordPool,
+    int? wordCount,
+    double? wordSpeed,
+    int? timeLimit,
+    int? targetScore,
+  }) {
+    return BouncingWordsGameParameters(
+      wordPool: wordPool ?? this.wordPool,
+      wordCount: wordCount ?? this.wordCount,
+      wordSpeed: wordSpeed ?? this.wordSpeed,
+      timeLimit: timeLimit ?? this.timeLimit,
+      targetScore: targetScore ?? this.targetScore,
+    );
+  }
+
   @override
   List<Object?> get props => [
         wordPool,

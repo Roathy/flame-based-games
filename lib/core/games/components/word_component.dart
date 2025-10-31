@@ -79,7 +79,7 @@ class WordComponent extends TextComponent with TapCallbacks {
   @override
   void onTapDown(TapDownEvent event) {
     if (onTapped()) {
-      _explode();
+      explode();
 
       // Add +1 text animation
       final scoreIndicator = FadingTextComponent(
@@ -108,7 +108,7 @@ class WordComponent extends TextComponent with TapCallbacks {
     }
   }
 
-  void _explode() {
+  void explode() {
     final random = Random();
     parent?.add(
       ParticleSystemComponent(
