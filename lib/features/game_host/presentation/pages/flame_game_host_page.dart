@@ -43,14 +43,36 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     );
 
     if (_levelConfig != null) {
-      _game?.gameStatusNotifier.removeListener(_gameStatusListener); // Remove old listener if game is reloaded
-      _game = _createGame(_levelConfig!); // Create new game instance
-      _game?.gameStatusNotifier.addListener(_gameStatusListener); // Add listener to new game instance
+      // Clean up listeners from the old game instance before creating a new one
+      _game?.gameStatusNotifier.removeListener(_gameStatusListener);
+      if (_game is BouncingWordsGame) {
+        (_game as BouncingWordsGame).showCountdown.removeListener(_onShowCountdownChanged);
+      }
+
+      _game = _createGame(_levelConfig!);
+
+      // Add listeners to the new game instance
+      _game?.gameStatusNotifier.addListener(_gameStatusListener);
+      if (_game is BouncingWordsGame) {
+        (_game as BouncingWordsGame).showCountdown.addListener(_onShowCountdownChanged);
+      }
+
       _gameStatusNotifier.value = GameStatus.initial;
     } else {
-      _gameStatusNotifier.value = GameStatus.gameOver; // Indicate error state
+      _gameStatusNotifier.value = GameStatus.gameOver;
     }
-    setState(() {}); // Rebuild to show loading or error
+    setState(() {});
+  }
+
+  void _onShowCountdownChanged() {
+    final game = _game;
+    if (game is BouncingWordsGame) {
+      if (game.showCountdown.value) {
+        game.overlays.add('countdown');
+      } else {
+        game.overlays.remove('countdown');
+      }
+    }
   }
 
   void _gameStatusListener() {
@@ -70,7 +92,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
           return BouncingWordsGame(levelConfig: config);
         default:
           throw UnimplementedError(
-            'Game type not implemented: ${config.gameType}',
+            'Game type not implemented: \${config.gameType}',
           );
       }
     } catch (e) {
@@ -85,6 +107,9 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   void dispose() {
     _gameStatusNotifier.dispose();
     _game?.gameStatusNotifier.removeListener(_gameStatusListener);
+    if (_game is BouncingWordsGame) {
+      (_game as BouncingWordsGame).showCountdown.removeListener(_onShowCountdownChanged);
+    }
     super.dispose();
   }
 
@@ -99,7 +124,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     if (_levelConfig == null || _game == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Error')),
-        body: const Center(child: Text('Level not found!'))
+        body: const Center(child: Text('Level not found!')),
       );
     }
 
@@ -123,9 +148,28 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
       ),
       body: Stack(
         children: [
-          // Always render the game widget as the base layer
-          GameWidget(game: _game!),
-          // Score Counter (Top Right)
+          GameWidget(
+            game: _game!,
+            overlayBuilderMap: {
+              'countdown': (context, game) {
+                return ValueListenableBuilder<int>(
+                  valueListenable: (game as BouncingWordsGame).countdownNotifier,
+                  builder: (context, value, child) {
+                    return Center(
+                      child: Text(
+                        value.toString(),
+                        style: const TextStyle(
+                          fontSize: 120,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            },
+          ),
           Positioned(
             top: 10,
             right: 10,
@@ -136,7 +180,6 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
               },
             ),
           ),
-          // Mistakes Counter (Top Left)
           Positioned(
             top: 10,
             left: 10,
@@ -147,7 +190,6 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
               },
             ),
           ),
-          // Timer (Bottom Right)
           Positioned(
             bottom: 10,
             right: 10,
@@ -158,7 +200,6 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
               },
             ),
           ),
-          // Conditionally render overlays based on game status
           ValueListenableBuilder<GameStatus>(
             valueListenable: _gameStatusNotifier,
             builder: (context, status, child) {
@@ -173,7 +214,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
                 case GameStatus.paused:
                   return _buildPausedScreen();
                 case GameStatus.playing:
-                  return const SizedBox.shrink(); // No playing overlay needed anymore
+                  return const SizedBox.shrink();
               }
             },
           ),
@@ -189,15 +230,12 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'An unexpected error occurred while loading the game.',
-              style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                _loadGame(); // Reloads the game and sets status to initial
-              },
+              onPressed: _loadGame,
               child: const Text('Retry'),
             ),
             const SizedBox(height: 10),
@@ -220,7 +258,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
             ElevatedButton(
               onPressed: () {
                 _gameStatusNotifier.value = GameStatus.playing;
-                _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to start
+                _game?.gameStatusNotifier.value = GameStatus.playing;
               },
               child: const Text('Start Game'),
             ),
@@ -241,13 +279,10 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
               _gameStatusNotifier.value == GameStatus.finished
                   ? 'Congratulations! You won!'
                   : 'Better luck next time!',
-              style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                _loadGame(); // Reloads the game and sets status to initial
-              },
+              onPressed: _loadGame,
               child: const Text('Play Again'),
             ),
             const SizedBox(height: 10),
@@ -268,15 +303,14 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'The game is currently paused.',
-              style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 _gameStatusNotifier.value = GameStatus.playing;
-                _game?.gameStatusNotifier.value = GameStatus.playing; // Notify game to resume
+                _game?.gameStatusNotifier.value = GameStatus.playing;
               },
               child: const Text('Resume Game'),
             ),

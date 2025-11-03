@@ -40,6 +40,10 @@ class BouncingWordsGame extends MirappFlameGame {
   List<Sentence> _sentences = [];
   Sentence? _currentSentence;
   int _hiddenWordIndex = -1;
+  bool _isMainTimerRunning = false;
+
+  final ValueNotifier<int> countdownNotifier = ValueNotifier(3);
+  final ValueNotifier<bool> showCountdown = ValueNotifier(false);
 
   BouncingWordsGame({required super.levelConfig});
 
@@ -123,19 +127,47 @@ class BouncingWordsGame extends MirappFlameGame {
 
   void _startGame() {
     _resetGame();
+    _startNextRound();
+  }
+
+  void _startNextRound() {
     _setNewSentenceChallenge();
 
-    add(TimerComponent(
-      period: 1,
+    countdownNotifier.value = 3;
+    showCountdown.value = true;
+
+    late TimerComponent countdownTimer;
+    countdownTimer = TimerComponent(
+      period: 0.9, // 10% faster than 1 second
       repeat: true,
       onTick: () {
-        if (_timeNotifier.value > 0) {
-          _timeNotifier.value--;
+        final currentVal = countdownNotifier.value;
+        if (currentVal > 1) {
+          countdownNotifier.value = currentVal - 1;
         } else {
-          onGameFinished(false);
+          showCountdown.value = false;
+          _spawnWords();
+          // Start the main game timer only after the first countdown
+          if (!_isMainTimerRunning) {
+            _isMainTimerRunning = true;
+            add(TimerComponent(
+              period: 1,
+              repeat: true,
+              onTick: () {
+                if (_timeNotifier.value > 0) {
+                  _timeNotifier.value--;
+                } else {
+                  onGameFinished(false);
+                }
+              },
+            ));
+          }
+          // Remove the countdown timer
+          countdownTimer.removeFromParent();
         }
       },
-    ));
+    );
+    add(countdownTimer);
   }
 
   void _resetGame() {
@@ -145,6 +177,7 @@ class BouncingWordsGame extends MirappFlameGame {
     _currentTargetWord = null;
     _currentSentence = null;
     _hiddenWordIndex = -1;
+    _isMainTimerRunning = false;
     _targetWordText?.text = '';
     _activeWords.clear();
     _wordVelocities.clear();
@@ -243,9 +276,7 @@ class BouncingWordsGame extends MirappFlameGame {
             onGameFinished(true);
           } else {
             // Short delay before starting the next round
-            add(TimerComponent(period: 1.5, onTick: () {
-              _setNewSentenceChallenge();
-            }));
+            add(TimerComponent(period: 1.5, onTick: _startNextRound));
           }
           return true; // Correct tap
         } else {
@@ -275,8 +306,6 @@ class BouncingWordsGame extends MirappFlameGame {
     final displayWords = List<String>.from(_currentSentence!.words);
     displayWords[_hiddenWordIndex] = '____';
     _targetWordText?.text = displayWords.join(' ');
-
-    _spawnWords();
   }
 
   Color _generateReadableColor() {
