@@ -10,6 +10,8 @@ import 'package:flame_based_games/core/di/injection_container.dart';
 import 'package:flame_based_games/features/bouncing_words_game/domain/repositories/bouncing_words_repository.dart';
 import 'package:flutter/material.dart';
 
+import 'package:flame/particles.dart';
+
 class BouncingWordsGame extends MirappFlameGame {
   final ValueNotifier<int> _scoreNotifier = ValueNotifier(0);
   final ValueNotifier<int> _mistakesNotifier = ValueNotifier(0);
@@ -36,6 +38,7 @@ class BouncingWordsGame extends MirappFlameGame {
   List<Sentence> _sentences = [];
   Sentence? _currentSentence;
   int _hiddenWordIndex = -1;
+  ParticleSystemComponent? _splashAnimation;
 
   BouncingWordsGame({required super.levelConfig});
 
@@ -83,6 +86,37 @@ class BouncingWordsGame extends MirappFlameGame {
     );
   }
 
+  ParticleSystemComponent _createSplashAnimation() {
+    // Define a function to generate a random vector with a given magnitude
+    Vector2 randomVector(double magnitude) {
+      final angle = _random.nextDouble() * 2 * pi;
+      return Vector2(cos(angle), sin(angle)) * magnitude;
+    }
+
+    return ParticleSystemComponent(
+      position: size / 2, // Center of the screen
+      particle: Particle.generate(
+        count: 60, // More particles
+        lifespan: 2.0, // Longer lifespan for a more continuous feel
+        generator: (i) {
+          final initialSpeed = randomVector(20 + _random.nextDouble() * 30);
+
+          // Create a tangential acceleration for the swirl effect
+          final acceleration = Vector2(-initialSpeed.y, initialSpeed.x) * 0.2;
+
+          return AcceleratedParticle(
+            speed: initialSpeed,
+            acceleration: acceleration,
+            child: CircleParticle(
+              radius: 1.0 + _random.nextDouble() * 2.0,
+              paint: Paint()..color = _generateReadableColor(),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _startGame() {
     _resetGame();
     _setNewSentenceChallenge();
@@ -120,23 +154,43 @@ class BouncingWordsGame extends MirappFlameGame {
       return;
     }
 
-    final Set<String> wordsToSpawn = {_currentTargetWord!};
+    _activeWords.clear();
+
+    final Set<String> wordsToSpawnSet = {_currentTargetWord!};
     final distractors = _gameParameters.wordPool.where((word) => word != _currentTargetWord).toList();
     distractors.shuffle(_random);
 
-    while (wordsToSpawn.length < _gameParameters.wordCount) {
+    while (wordsToSpawnSet.length < _gameParameters.wordCount) {
       if (distractors.isNotEmpty) {
-        wordsToSpawn.add(distractors.removeLast());
+        wordsToSpawnSet.add(distractors.removeLast());
       } else {
-        // Fallback in case there are not enough unique distractors
         break;
       }
     }
 
-    _activeWords.addAll(wordsToSpawn);
-    for (final word in _activeWords) {
-      _spawnSingleWord(word);
-    }
+    final wordsToSpawn = wordsToSpawnSet.toList()..shuffle(_random);
+
+    _splashAnimation = _createSplashAnimation();
+    add(_splashAnimation!);
+
+    late TimerComponent spawner;
+    spawner = TimerComponent(
+      period: 0.2, // 0.2 seconds between each word spawn
+      repeat: true,
+      onTick: () {
+        if (wordsToSpawn.isNotEmpty) {
+          final word = wordsToSpawn.removeLast();
+          _activeWords.add(word);
+          _spawnSingleWord(word);
+        } else {
+          // No more words to spawn, remove the timer and the splash
+          spawner.removeFromParent();
+          _splashAnimation?.removeFromParent();
+          _splashAnimation = null;
+        }
+      },
+    );
+    add(spawner);
   }
 
   void _spawnSingleWord(String word) {
