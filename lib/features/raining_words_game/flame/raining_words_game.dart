@@ -34,6 +34,9 @@ class RainingWordsGame extends MirappFlameGame {
   @override
   ValueNotifier<int> get timeNotifier => _timeNotifier;
 
+  @override
+  ValueNotifier<String> get categoryNotifier => ValueNotifier('');
+
   late FlutterTts flutterTts;
   late final RainingWordsGameParameters _gameParameters;
   late final ShufflingMethod shufflingMethod;

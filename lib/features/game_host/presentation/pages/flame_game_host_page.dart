@@ -105,7 +105,29 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_levelConfig!.name, style: Theme.of(context).appBarTheme.titleTextStyle),
+        title: Row(
+          children: [
+            Expanded(
+              child: ValueListenableBuilder<String>(
+                valueListenable: _game!.categoryNotifier,
+                builder: (context, category, child) {
+                  return Text(
+                    category.isEmpty ? _levelConfig!.name : category,
+                    style: Theme.of(context).appBarTheme.titleTextStyle,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            ValueListenableBuilder<int>(
+              valueListenable: _game!.timeNotifier,
+              builder: (context, time, child) {
+                return Text('Time: $time', style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(color: Colors.white70));
+              },
+            ),
+          ],
+        ),
         actions: [
           if (_game is RainingWordsGame)
             IconButton(
@@ -120,6 +142,28 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
         children: [
           // Always render the game widget as the base layer
           GameWidget(game: _game!),
+          // Score Counter (Top Right)
+          Positioned(
+            top: 10,
+            right: 10,
+            child: ValueListenableBuilder<int>(
+              valueListenable: _game!.scoreNotifier,
+              builder: (context, score, child) {
+                return Text('Score: $score', style: const TextStyle(color: Colors.greenAccent, fontSize: 24));
+              },
+            ),
+          ),
+          // Mistakes Counter (Top Left)
+          Positioned(
+            top: 10,
+            left: 10,
+            child: ValueListenableBuilder<int>(
+              valueListenable: _game!.mistakesNotifier,
+              builder: (context, mistakes, child) {
+                return Text('Mistakes: $mistakes', style: const TextStyle(color: Colors.redAccent, fontSize: 24));
+              },
+            ),
+          ),
           // Conditionally render overlays based on game status
           ValueListenableBuilder<GameStatus>(
             valueListenable: _gameStatusNotifier,
@@ -135,7 +179,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
                 case GameStatus.paused:
                   return _buildPausedScreen();
                 case GameStatus.playing:
-                  return _buildPlayingOverlay(); // New overlay for playing state
+                  return const SizedBox.shrink(); // No playing overlay needed anymore
               }
             },
           ),
@@ -188,36 +232,6 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildPlayingOverlay() {
-    return Positioned(
-      top: 10,
-      right: 10,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          ValueListenableBuilder<int>(
-            valueListenable: _game!.scoreNotifier,
-            builder: (context, score, child) {
-              return Text('Score: $score', style: const TextStyle(color: Colors.greenAccent, fontSize: 24));
-            },
-          ),
-          ValueListenableBuilder<int>(
-            valueListenable: _game!.mistakesNotifier,
-            builder: (context, mistakes, child) {
-              return Text('Mistakes: $mistakes', style: const TextStyle(color: Colors.redAccent, fontSize: 24));
-            },
-          ),
-          ValueListenableBuilder<int>(
-            valueListenable: _game!.timeNotifier,
-            builder: (context, time, child) {
-              return Text('Time: $time', style: const TextStyle(color: Colors.white, fontSize: 24));
-            },
-          ),
-        ],
       ),
     );
   }

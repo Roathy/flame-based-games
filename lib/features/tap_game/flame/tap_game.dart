@@ -18,6 +18,9 @@ class TapGame extends MirappFlameGame {
   ValueNotifier<int> get timeNotifier => ValueNotifier(0);
 
   @override
+  ValueNotifier<String> get categoryNotifier => ValueNotifier('');
+
+  @override
   Future<void> onLoad() async {
     try {
       await super.onLoad();

@@ -10,6 +10,7 @@ abstract class MirappFlameGame extends FlameGame {
   ValueNotifier<int> get scoreNotifier;
   ValueNotifier<int> get mistakesNotifier;
   ValueNotifier<int> get timeNotifier;
+  ValueNotifier<String> get categoryNotifier;
 
   MirappFlameGame({required this.levelConfig});
 

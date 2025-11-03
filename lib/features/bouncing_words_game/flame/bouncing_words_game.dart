@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/components/word_component.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
 import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
+import 'package:flame_based_games/features/bouncing_words_game/domain/entities/sentence.dart';
 import 'package:flame_based_games/features/bouncing_words_game/domain/entities/bouncing_words_game_parameters.dart';
 import 'package:flame_based_games/core/di/injection_container.dart';
 import 'package:flame_based_games/features/bouncing_words_game/domain/repositories/bouncing_words_repository.dart';
@@ -13,6 +14,7 @@ class BouncingWordsGame extends MirappFlameGame {
   final ValueNotifier<int> _scoreNotifier = ValueNotifier(0);
   final ValueNotifier<int> _mistakesNotifier = ValueNotifier(0);
   final ValueNotifier<int> _timeNotifier = ValueNotifier(45);
+  final ValueNotifier<String> _categoryNotifier = ValueNotifier('');
 
   @override
   ValueNotifier<int> get scoreNotifier => _scoreNotifier;
@@ -20,15 +22,20 @@ class BouncingWordsGame extends MirappFlameGame {
   ValueNotifier<int> get mistakesNotifier => _mistakesNotifier;
   @override
   ValueNotifier<int> get timeNotifier => _timeNotifier;
+  @override
+  ValueNotifier<String> get categoryNotifier => _categoryNotifier;
 
   final Random _random = Random();
   late BouncingWordsGameParameters _gameParameters;
   final Map<WordComponent, Vector2> _wordVelocities = {};
   final BouncingWordsRepository _bouncingWordsRepository = sl<BouncingWordsRepository>();
 
-  TextComponent? _targetWordText;
+  TextBoxComponent? _targetWordText;
   String? _currentTargetWord;
   final List<String> _activeWords = [];
+  List<Sentence> _sentences = [];
+  Sentence? _currentSentence;
+  int _hiddenWordIndex = -1;
 
   BouncingWordsGame({required super.levelConfig});
 
@@ -41,7 +48,9 @@ class BouncingWordsGame extends MirappFlameGame {
       final distractorWords = await _bouncingWordsRepository.getDistractorWords();
       _gameParameters = _gameParameters.copyWith(wordPool: distractorWords);
 
-      _targetWordText = TextComponent(
+      _sentences = await _bouncingWordsRepository.getSentences();
+
+      _targetWordText = TextBoxComponent(
         text: '',
         anchor: Anchor.topCenter,
         textRenderer: TextPaint(
@@ -50,6 +59,10 @@ class BouncingWordsGame extends MirappFlameGame {
             color: Colors.yellow, // Make color distinct
             fontWeight: FontWeight.bold,
           ),
+        ),
+        boxConfig: TextBoxConfig(
+          maxWidth: size.x * 0.8, // 80% of screen width
+          timePerChar: 0.0,
         ),
       );
 
@@ -64,12 +77,15 @@ class BouncingWordsGame extends MirappFlameGame {
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     _targetWordText?.position = Vector2(size.x / 2, 40);
+    _targetWordText?.boxConfig = TextBoxConfig(
+      maxWidth: size.x * 0.8,
+      timePerChar: 0.0,
+    );
   }
 
   void _startGame() {
     _resetGame();
-    _spawnWords();
-    _setNewTargetWord();
+    _setNewSentenceChallenge();
 
     add(TimerComponent(
       period: 1,
@@ -89,6 +105,8 @@ class BouncingWordsGame extends MirappFlameGame {
     _mistakesNotifier.value = 0;
     _timeNotifier.value = _gameParameters.timeLimit;
     _currentTargetWord = null;
+    _currentSentence = null;
+    _hiddenWordIndex = -1;
     _targetWordText?.text = '';
     _activeWords.clear();
     _wordVelocities.clear();
@@ -102,9 +120,17 @@ class BouncingWordsGame extends MirappFlameGame {
       return;
     }
 
-    final Set<String> wordsToSpawn = {};
+    final Set<String> wordsToSpawn = {_currentTargetWord!};
+    final distractors = _gameParameters.wordPool.where((word) => word != _currentTargetWord).toList();
+    distractors.shuffle(_random);
+
     while (wordsToSpawn.length < _gameParameters.wordCount) {
-      wordsToSpawn.add(_gameParameters.wordPool[_random.nextInt(_gameParameters.wordPool.length)]);
+      if (distractors.isNotEmpty) {
+        wordsToSpawn.add(distractors.removeLast());
+      } else {
+        // Fallback in case there are not enough unique distractors
+        break;
+      }
     }
 
     _activeWords.addAll(wordsToSpawn);
@@ -127,8 +153,10 @@ class BouncingWordsGame extends MirappFlameGame {
         if (word == _currentTargetWord) {
           _scoreNotifier.value++;
 
+          _targetWordText?.text = _currentSentence!.text; // Show completed sentence
+
           // --- Round Clear Logic ---
-          final otherWords = children.whereType<WordComponent>().where((c) => c.word != word).toList();
+          final otherWords = children.whereType<WordComponent>().toList();
           for (final otherWord in otherWords) {
             otherWord.explode();
             otherWord.removeFromParent();
@@ -140,9 +168,8 @@ class BouncingWordsGame extends MirappFlameGame {
             onGameFinished(true);
           } else {
             // Short delay before starting the next round
-            add(TimerComponent(period: 0.5, onTick: () {
-              _spawnWords();
-              _setNewTargetWord();
+            add(TimerComponent(period: 1.5, onTick: () {
+              _setNewSentenceChallenge();
             }));
           }
           return true; // Correct tap
@@ -158,13 +185,23 @@ class BouncingWordsGame extends MirappFlameGame {
     add(wordComponent);
   }
 
-  void _setNewTargetWord() {
-    if (_activeWords.isEmpty) {
-      onGameFinished(true); // No more words to tap, player wins
+  void _setNewSentenceChallenge() {
+    if (_sentences.isEmpty) {
+      onGameFinished(true); // No more sentences, player wins
       return;
     }
-    _currentTargetWord = _activeWords[_random.nextInt(_activeWords.length)];
-    _targetWordText?.text = 'Target: $_currentTargetWord!';
+
+    _currentSentence = _sentences[_random.nextInt(_sentences.length)];
+    _categoryNotifier.value = _currentSentence!.category;
+
+    _hiddenWordIndex = _random.nextInt(_currentSentence!.words.length);
+    _currentTargetWord = _currentSentence!.words[_hiddenWordIndex];
+
+    final displayWords = List<String>.from(_currentSentence!.words);
+    displayWords[_hiddenWordIndex] = '____';
+    _targetWordText?.text = displayWords.join(' ');
+
+    _spawnWords();
   }
 
   Color _generateReadableColor() {
