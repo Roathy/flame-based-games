@@ -7,7 +7,10 @@ import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
 import 'package:flame_based_games/features/raining_words_game/data/vocabulary_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import '../domain/enums/shuffling_method.dart';
+
+
+import 'package:flame_based_games/features/raining_words_game/domain/enums/shuffling_method.dart';
+import 'package:flame_based_games/features/raining_words_game/domain/entities/raining_words_game_parameters.dart';
 
 class RainingWordsGame extends MirappFlameGame {
   List<String> _wordList = []; // Used for ShufflingMethod.random
@@ -32,6 +35,7 @@ class RainingWordsGame extends MirappFlameGame {
   ValueNotifier<int> get timeNotifier => _timeNotifier;
 
   late FlutterTts flutterTts;
+  late final RainingWordsGameParameters _gameParameters;
   late final ShufflingMethod shufflingMethod;
 
   TimerComponent? _spawnTimer;
@@ -41,17 +45,23 @@ class RainingWordsGame extends MirappFlameGame {
 
   @override
   Future<void> onLoad() async {
-    await super.onLoad();
+    try {
+      await super.onLoad();
 
-    flutterTts = FlutterTts();
-    await flutterTts.setLanguage("en-US");
-    await flutterTts.setSpeechRate(0.5);
+      flutterTts = FlutterTts();
+      await flutterTts.setLanguage("en-US");
+      await flutterTts.setSpeechRate(0.5);
 
-    _speed = levelConfig.parameters['speed'] as double;
-    shufflingMethod = ShufflingMethod.values.firstWhere(
-      (e) => e.toString() == 'ShufflingMethod.${levelConfig.parameters['shuffling_method']}',
-      orElse: () => ShufflingMethod.random, // Default value if not found
-    );
+      _gameParameters = levelConfig.gameParameters as RainingWordsGameParameters;
+      _speed = _gameParameters.speed;
+      shufflingMethod = ShufflingMethod.values.firstWhere(
+        (e) => e.toString() == 'ShufflingMethod.${_gameParameters.shufflingMethod}',
+        orElse: () => ShufflingMethod.random, // Default value if not found
+      );
+    } catch (e) {
+      print('Error loading RainingWordsGame: $e');
+      gameStatusNotifier.value = GameStatus.error;
+    }
   }
 
   void _initializeWordPool() {

@@ -1,6 +1,8 @@
 
 import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
+import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
+import 'package:flame_based_games/features/tap_game/domain/entities/tap_game_parameters.dart';
 import 'package:flutter/material.dart';
 
 class TapGame extends MirappFlameGame {
@@ -17,21 +19,26 @@ class TapGame extends MirappFlameGame {
 
   @override
   Future<void> onLoad() async {
-    await super.onLoad();
-    final squareColor = int.parse(levelConfig.parameters['square_color'] as String);
-    add(SquareComponent(color: squareColor));
+    try {
+      await super.onLoad();
+      final gameParameters = levelConfig.gameParameters as TapGameParameters;
+      add(SquareComponent(color: gameParameters.squareColor));
+    } catch (e) {
+      print('Error loading TapGame: $e');
+      gameStatusNotifier.value = GameStatus.error;
+    }
   }
 }
 
 class SquareComponent extends PositionComponent {
-  final int color;
+  final Color color;
 
   SquareComponent({required this.color}) : super(size: Vector2.all(100));
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    final paint = Paint()..color = Color(color);
+    final paint = Paint()..color = color;
     canvas.drawRect(size.toRect(), paint);
   }
 }

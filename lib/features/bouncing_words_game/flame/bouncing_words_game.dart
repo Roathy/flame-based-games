@@ -34,28 +34,30 @@ class BouncingWordsGame extends MirappFlameGame {
 
   @override
   Future<void> onLoad() async {
-    // Initialize all synchronous variables first.
-    _gameParameters = levelConfig.bouncingWordsGameParameters ?? const BouncingWordsGameParameters(wordPool: []);
+    try {
+      await super.onLoad();
+      _gameParameters = levelConfig.gameParameters as BouncingWordsGameParameters;
 
-    final distractorWords = await _bouncingWordsRepository.getDistractorWords();
-    _gameParameters = _gameParameters.copyWith(wordPool: distractorWords);
+      final distractorWords = await _bouncingWordsRepository.getDistractorWords();
+      _gameParameters = _gameParameters.copyWith(wordPool: distractorWords);
 
-    _targetWordText = TextComponent(
-      text: '',
-      anchor: Anchor.topCenter,
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          fontSize: 32,
-          color: Colors.yellow, // Make color distinct
-          fontWeight: FontWeight.bold,
+      _targetWordText = TextComponent(
+        text: '',
+        anchor: Anchor.topCenter,
+        textRenderer: TextPaint(
+          style: const TextStyle(
+            fontSize: 32,
+            color: Colors.yellow, // Make color distinct
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
-    );
+      );
 
-    await super.onLoad();
-
-    // Add components to the tree after awaiting.
-    camera.viewport.add(_targetWordText!);
+      camera.viewport.add(_targetWordText!);
+    } catch (e) {
+      print('Error loading BouncingWordsGame: $e');
+      gameStatusNotifier.value = GameStatus.error;
+    }
   }
 
   @override

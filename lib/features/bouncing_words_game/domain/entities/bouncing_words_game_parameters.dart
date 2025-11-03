@@ -1,7 +1,7 @@
 
-import 'package:equatable/equatable.dart';
+import 'package:flame_based_games/core/games/domain/entities/base_game_parameters.dart';
 
-class BouncingWordsGameParameters extends Equatable {
+class BouncingWordsGameParameters extends BaseGameParameters {
   final List<String> wordPool;
   final int wordCount;
   final double wordSpeed;

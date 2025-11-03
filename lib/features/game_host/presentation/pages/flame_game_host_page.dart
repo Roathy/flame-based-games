@@ -59,18 +59,25 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     }
   }
 
-  MirappFlameGame _createGame(GameLevelConfig config) {
-    switch (config.gameType) {
-      case FlameGameType.tapGame:
-        return TapGame(levelConfig: config);
-      case FlameGameType.rainingWordsGame:
-        return RainingWordsGame(levelConfig: config);
-      case FlameGameType.bouncingWordsGame:
-        return BouncingWordsGame(levelConfig: config);
-      default:
-        throw UnimplementedError(
-          'Game type not implemented: ${config.gameType}',
-        );
+  MirappFlameGame? _createGame(GameLevelConfig config) {
+    try {
+      switch (config.gameType) {
+        case FlameGameType.tapGame:
+          return TapGame(levelConfig: config);
+        case FlameGameType.rainingWordsGame:
+          return RainingWordsGame(levelConfig: config);
+        case FlameGameType.bouncingWordsGame:
+          return BouncingWordsGame(levelConfig: config);
+        default:
+          throw UnimplementedError(
+            'Game type not implemented: ${config.gameType}',
+          );
+      }
+    } catch (e) {
+      // Log the error and update the status
+      print('Error creating game: $e');
+      _gameStatusNotifier.value = GameStatus.error;
+      return null;
     }
   }
 
@@ -123,6 +130,8 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
                 case GameStatus.finished:
                 case GameStatus.gameOver:
                   return _buildFinishedScreen();
+                case GameStatus.error:
+                  return _buildErrorScreen();
                 case GameStatus.paused:
                   return _buildPausedScreen();
                 case GameStatus.playing:
@@ -131,6 +140,35 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen() {
+    return GameOverlay(
+      child: AlertDialog(
+        title: Text('Error', style: Theme.of(context).textTheme.headlineMedium),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'An unexpected error occurred while loading the game.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                _loadGame(); // Reloads the game and sets status to initial
+              },
+              child: const Text('Retry'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => context.pop(),
+              child: const Text('Back to Home'),
+            ),
+          ],
+        ),
       ),
     );
   }

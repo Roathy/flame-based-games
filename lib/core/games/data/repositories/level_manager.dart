@@ -1,4 +1,7 @@
 import 'package:flame_based_games/features/bouncing_words_game/domain/entities/bouncing_words_game_parameters.dart';
+import 'package:flame_based_games/features/raining_words_game/domain/entities/raining_words_game_parameters.dart';
+import 'package:flame_based_games/features/tap_game/domain/entities/tap_game_parameters.dart';
+import 'package:flutter/material.dart';
 import '../../domain/entities/game_level_config.dart';
 import '../../domain/enums/difficulty.dart';
 import '../../domain/enums/flame_game_type.dart';
@@ -11,9 +14,9 @@ class LevelManager {
       gameType: FlameGameType.tapGame,
       difficulty: Difficulty.easy,
       instruction: 'Tap the square as fast as you can!',
-      parameters: {
-        'square_color': '0xFF00FF00',
-      },
+      gameParameters: TapGameParameters(
+        squareColor: Colors.green,
+      ),
     ),
     const GameLevelConfig(
       id: '2',
@@ -21,11 +24,11 @@ class LevelManager {
       gameType: FlameGameType.rainingWordsGame,
       difficulty: Difficulty.medium,
       instruction: 'Tap the raining words in order!',
-      parameters: {
-        'word_list': ['hello', 'world', 'flutter', 'flame'],
-        'speed': 100.0,
-        'shuffling_method': 'random',
-      },
+      gameParameters: RainingWordsGameParameters(
+        wordList: ['hello', 'world', 'flutter', 'flame'],
+        speed: 100.0,
+        shufflingMethod: 'random',
+      ),
     ),
     const GameLevelConfig(
       id: '3',
@@ -33,11 +36,11 @@ class LevelManager {
       gameType: FlameGameType.rainingWordsGame,
       difficulty: Difficulty.medium,
       instruction: 'Tap the raining words in order!',
-      parameters: {
-        'word_list': ['hello', 'world', 'flutter', 'flame'],
-        'speed': 100.0,
-        'shuffling_method': 'shuffleBag',
-      },
+      gameParameters: RainingWordsGameParameters(
+        wordList: ['hello', 'world', 'flutter', 'flame'],
+        speed: 100.0,
+        shufflingMethod: 'shuffleBag',
+      ),
     ),
     const GameLevelConfig(
         id: '4',
@@ -45,7 +48,7 @@ class LevelManager {
         gameType: FlameGameType.bouncingWordsGame,
         difficulty: Difficulty.easy,
         instruction: 'Tap the bouncing words!',
-        bouncingWordsGameParameters: BouncingWordsGameParameters(
+        gameParameters: BouncingWordsGameParameters(
           wordPool: ['apple', 'banana', 'cherry', 'date', 'elderberry'],
           wordCount: 5,
           wordSpeed: 80.0,
