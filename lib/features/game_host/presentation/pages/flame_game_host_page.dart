@@ -105,28 +105,11 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Expanded(
-              child: ValueListenableBuilder<String>(
-                valueListenable: _game!.categoryNotifier,
-                builder: (context, category, child) {
-                  return Text(
-                    category.isEmpty ? _levelConfig!.name : category,
-                    style: Theme.of(context).appBarTheme.titleTextStyle,
-                    overflow: TextOverflow.ellipsis,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 10),
-            ValueListenableBuilder<int>(
-              valueListenable: _game!.timeNotifier,
-              builder: (context, time, child) {
-                return Text('Time: $time', style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(color: Colors.white70));
-              },
-            ),
-          ],
+        title: ValueListenableBuilder<String>(
+          valueListenable: _game!.categoryNotifier,
+          builder: (context, category, child) {
+            return Text(category.isEmpty ? _levelConfig!.name : category, style: Theme.of(context).appBarTheme.titleTextStyle);
+          },
         ),
         actions: [
           if (_game is RainingWordsGame)
@@ -161,6 +144,17 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
               valueListenable: _game!.mistakesNotifier,
               builder: (context, mistakes, child) {
                 return Text('Mistakes: $mistakes', style: const TextStyle(color: Colors.redAccent, fontSize: 24));
+              },
+            ),
+          ),
+          // Timer (Bottom Right)
+          Positioned(
+            bottom: 10,
+            right: 10,
+            child: ValueListenableBuilder<int>(
+              valueListenable: _game!.timeNotifier,
+              builder: (context, time, child) {
+                return Text('Time: $time', style: const TextStyle(color: Colors.white, fontSize: 24));
               },
             ),
           ),
