@@ -10,6 +10,8 @@ import 'package:flame_based_games/core/di/injection_container.dart';
 import 'package:flame_based_games/features/bouncing_words_game/domain/repositories/bouncing_words_repository.dart';
 import 'package:flutter/material.dart';
 
+import 'package:flame_based_games/core/games/components/portal_effect_component.dart';
+
 import 'package:flame/particles.dart';
 
 class BouncingWordsGame extends MirappFlameGame {
@@ -38,7 +40,6 @@ class BouncingWordsGame extends MirappFlameGame {
   List<Sentence> _sentences = [];
   Sentence? _currentSentence;
   int _hiddenWordIndex = -1;
-  ParticleSystemComponent? _splashAnimation;
 
   BouncingWordsGame({required super.levelConfig});
 
@@ -86,7 +87,14 @@ class BouncingWordsGame extends MirappFlameGame {
     );
   }
 
-  ParticleSystemComponent _createSplashAnimation() {
+  ParticleSystemComponent createExplosionAnimation({
+    required Vector2 position,
+    int count = 20,
+    double lifespan = 0.8,
+    double speed = 300,
+    double particleRadius = 2.0,
+    Color? color,
+  }) {
     // Define a function to generate a random vector with a given magnitude
     Vector2 randomVector(double magnitude) {
       final angle = _random.nextDouble() * 2 * pi;
@@ -94,22 +102,18 @@ class BouncingWordsGame extends MirappFlameGame {
     }
 
     return ParticleSystemComponent(
-      position: size / 2, // Center of the screen
+      position: position,
       particle: Particle.generate(
-        count: 60, // More particles
-        lifespan: 2.0, // Longer lifespan for a more continuous feel
+        count: count,
+        lifespan: lifespan,
         generator: (i) {
-          final initialSpeed = randomVector(20 + _random.nextDouble() * 30);
-
-          // Create a tangential acceleration for the swirl effect
-          final acceleration = Vector2(-initialSpeed.y, initialSpeed.x) * 0.2;
+          final initialSpeed = randomVector(speed * (1 - _random.nextDouble() * 0.5));
 
           return AcceleratedParticle(
             speed: initialSpeed,
-            acceleration: acceleration,
             child: CircleParticle(
-              radius: 1.0 + _random.nextDouble() * 2.0,
-              paint: Paint()..color = _generateReadableColor(),
+              radius: particleRadius + _random.nextDouble() * particleRadius,
+              paint: Paint()..color = color ?? _generateReadableColor(),
             ),
           );
         },
@@ -170,8 +174,14 @@ class BouncingWordsGame extends MirappFlameGame {
 
     final wordsToSpawn = wordsToSpawnSet.toList()..shuffle(_random);
 
-    _splashAnimation = _createSplashAnimation();
-    add(_splashAnimation!);
+    final spawnDuration = wordsToSpawn.length * 0.2;
+    add(
+      PortalEffectComponent(
+        position: size / 2,
+        particleColor: _generateReadableColor(),
+        duration: Duration(milliseconds: (spawnDuration * 1000).round()),
+      ),
+    );
 
     late TimerComponent spawner;
     spawner = TimerComponent(
@@ -179,18 +189,29 @@ class BouncingWordsGame extends MirappFlameGame {
       repeat: true,
       onTick: () {
         if (wordsToSpawn.isNotEmpty) {
+          triggerSpawnPulse();
           final word = wordsToSpawn.removeLast();
           _activeWords.add(word);
           _spawnSingleWord(word);
         } else {
-          // No more words to spawn, remove the timer and the splash
+          // No more words to spawn, remove the timer
           spawner.removeFromParent();
-          _splashAnimation?.removeFromParent();
-          _splashAnimation = null;
         }
       },
     );
     add(spawner);
+  }
+
+  void triggerSpawnPulse() {
+    add(
+      createExplosionAnimation(
+        position: size / 2,
+        count: 10,
+        lifespan: 0.3,
+        speed: 150,
+        particleRadius: 1.5,
+      ),
+    );
   }
 
   void _spawnSingleWord(String word) {

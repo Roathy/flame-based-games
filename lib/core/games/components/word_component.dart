@@ -6,6 +6,7 @@ import 'package:flame/particles.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_based_games/core/games/components/fading_text_component.dart';
 import 'package:flutter/material.dart';
+import 'package:flame_based_games/features/bouncing_words_game/flame/bouncing_words_game.dart';
 
 class WordComponent extends TextComponent with TapCallbacks {
   final String word;
@@ -109,26 +110,40 @@ class WordComponent extends TextComponent with TapCallbacks {
   }
 
   void explode() {
-    final random = Random();
-    parent?.add(
-      ParticleSystemComponent(
-        position: position,
-        particle: Particle.generate(
-          count: 20,
-          lifespan: 0.3,
-          generator: (i) => AcceleratedParticle(
-            speed: Vector2(
-                  random.nextDouble() * 400 - 200,
-                  random.nextDouble() * 400 - 200,
-                ) *
-                (1 - (random.nextDouble() * 0.5)),
-            child: CircleParticle(
-              radius: 2 + random.nextDouble() * 2,
-              paint: Paint()..color = color,
+    if (parent is BouncingWordsGame) {
+      (parent as BouncingWordsGame).add(
+        (parent as BouncingWordsGame).createExplosionAnimation(
+          position: position,
+          color: color,
+          count: 15,
+          lifespan: 0.4,
+          speed: 250,
+          particleRadius: 1.5,
+        ),
+      );
+    } else {
+      // Fallback for other game types if needed
+      final random = Random();
+      parent?.add(
+        ParticleSystemComponent(
+          position: position,
+          particle: Particle.generate(
+            count: 20,
+            lifespan: 0.3,
+            generator: (i) => AcceleratedParticle(
+              speed: Vector2(
+                    random.nextDouble() * 400 - 200,
+                    random.nextDouble() * 400 - 200,
+                  ) *
+                  (1 - (random.nextDouble() * 0.5)),
+              child: CircleParticle(
+                radius: 2 + random.nextDouble() * 2,
+                paint: Paint()..color = color,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 }
