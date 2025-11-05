@@ -1,4 +1,3 @@
-import 'package:flame_based_games/core/di/injection_container.dart';
 import 'package:flame_based_games/core/theme/flame_game_theme.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
@@ -34,8 +33,13 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   @override
   void initState() {
     super.initState();
-    _theme = sl<FlameGameTheme>();
     _loadGame();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _theme = Theme.of(context).extension<FlameGameTheme>()!;
   }
 
   Future<void> _loadGame() async {

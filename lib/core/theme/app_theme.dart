@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flame_based_games/core/theme/flame_game_theme.dart';
 
 // Define a set of custom colors based on the design system manual
 class AppColors {
@@ -161,5 +162,7 @@ ThemeData buildAppTheme() {
     ),
 
     // Add other theme properties as needed, e.g., inputDecorationTheme, iconTheme
-  );
+  ).copyWith(extensions: <ThemeExtension<dynamic>>[
+    FlameGameTheme.dark(),
+  ]);
 }

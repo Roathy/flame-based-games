@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 
-class FlameGameTheme {
+class FlameGameTheme extends ThemeExtension<FlameGameTheme> {
   final Color backgroundColor;
   final TextStyle wordTextStyle;
   final TextStyle uiTextStyle;
@@ -17,6 +17,40 @@ class FlameGameTheme {
     required this.incorrectColor,
     required this.neutralColor,
   });
+
+  @override
+  FlameGameTheme copyWith({
+    Color? backgroundColor,
+    TextStyle? wordTextStyle,
+    TextStyle? uiTextStyle,
+    Color? correctColor,
+    Color? incorrectColor,
+    Color? neutralColor,
+  }) {
+    return FlameGameTheme(
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      wordTextStyle: wordTextStyle ?? this.wordTextStyle,
+      uiTextStyle: uiTextStyle ?? this.uiTextStyle,
+      correctColor: correctColor ?? this.correctColor,
+      incorrectColor: incorrectColor ?? this.incorrectColor,
+      neutralColor: neutralColor ?? this.neutralColor,
+    );
+  }
+
+  @override
+  FlameGameTheme lerp(covariant ThemeExtension<FlameGameTheme>? other, double t) {
+    if (other is! FlameGameTheme) {
+      return this;
+    }
+    return FlameGameTheme(
+      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t)!,
+      wordTextStyle: TextStyle.lerp(wordTextStyle, other.wordTextStyle, t)!,
+      uiTextStyle: TextStyle.lerp(uiTextStyle, other.uiTextStyle, t)!,
+      correctColor: Color.lerp(correctColor, other.correctColor, t)!,
+      incorrectColor: Color.lerp(incorrectColor, other.incorrectColor, t)!,
+      neutralColor: Color.lerp(neutralColor, other.neutralColor, t)!,
+    );
+  }
 
   factory FlameGameTheme.dark() {
     return const FlameGameTheme(
