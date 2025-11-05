@@ -8,9 +8,10 @@ import 'package:flame_based_games/features/raining_words_game/data/vocabulary_da
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-
 import 'package:flame_based_games/features/raining_words_game/domain/enums/shuffling_method.dart';
 import 'package:flame_based_games/features/raining_words_game/domain/entities/raining_words_game_parameters.dart';
+
+import 'package:flame_based_games/core/games/domain/entities/game_level_config.dart';
 
 class RainingWordsGame extends MirappFlameGame {
   List<String> _wordList = []; // Used for ShufflingMethod.random
@@ -44,7 +45,8 @@ class RainingWordsGame extends MirappFlameGame {
   TimerComponent? _spawnTimer;
   TimerComponent? _boostTimer;
 
-  RainingWordsGame({required super.levelConfig});
+  RainingWordsGame({required GameLevelConfig levelConfig})
+      : super(levelConfig: levelConfig);
 
   @override
   Future<void> onLoad() async {
@@ -116,7 +118,9 @@ class RainingWordsGame extends MirappFlameGame {
     }
 
     // Add words from other categories
-    final otherCategories = VocabularyData.vocabularyCategories.values.where((cat) => cat != _targetCategory).toList();
+    final otherCategories = VocabularyData.vocabularyCategories.values
+        .where((cat) => cat != _targetCategory)
+        .toList();
     for (int i = 0; i < otherWordsCount; i++) {
       if (otherCategories.isNotEmpty) {
         final randomCategory = otherCategories[_random.nextInt(otherCategories.length)];
@@ -246,22 +250,12 @@ class RainingWordsGame extends MirappFlameGame {
     final wordComponent = WordComponent(
       word: wordToSpawn,
       onTapped: () => _onWordTapped(wordToSpawn),
-      color: _generateReadableColor(),
+      theme: theme,
     );
     _wordSpeeds[wordComponent] = randomSpeed;
     add(wordComponent);
     _setWordPosition(wordComponent);
     _wordsSpawned++;
-  }
-
-  Color _generateReadableColor() {
-    // Generate a color with high saturation and lightness to be readable on black
-    return HSLColor.fromAHSL(
-      1.0, // Alpha
-      _random.nextDouble() * 360, // Hue
-      0.7 + _random.nextDouble() * 0.3, // Saturation (0.7 to 1.0)
-      0.6 + _random.nextDouble() * 0.2, // Lightness (0.6 to 0.8)
-    ).toColor();
   }
 
   void _setWordPosition(WordComponent wordComponent) {
@@ -286,23 +280,23 @@ class RainingWordsGame extends MirappFlameGame {
       component.position.y += speed * dt;
 
       if (component.position.y > size.y) {
-                  if (!component.animationTriggered) {
-                    component.animationTriggered = true;
-                    if (_targetCategory!.contains(component.word)) {
-                      _mistakesNotifier.value++;
-                      // If a word from the target category is missed, shake other words and bounce
-                      for (final otherComponent in wordsOnScreen) {
-                        if (otherComponent != component) {
-                          otherComponent.shake();
-                        }
-                      }
-                      component.bounceAndDisappear();
-                    } else {
-                      // Words from other categories just disappear
-                      component.removeFromParent();
-                    }
-                  }
-                  _wordSpeeds.remove(component);
+        if (!component.animationTriggered) {
+          component.animationTriggered = true;
+          if (_targetCategory!.contains(component.word)) {
+            _mistakesNotifier.value++;
+            // If a word from the target category is missed, shake other words and bounce
+            for (final otherComponent in wordsOnScreen) {
+              if (otherComponent != component) {
+                otherComponent.shake();
+              }
+            }
+            component.bounceAndDisappear();
+          } else {
+            // Words from other categories just disappear
+            component.removeFromParent();
+          }
+        }
+        _wordSpeeds.remove(component);
       }
     }
   }
@@ -312,7 +306,7 @@ class RainingWordsGame extends MirappFlameGame {
       return false;
     }
 
-      if (_targetCategory!.contains(tappedWord)) {
+    if (_targetCategory!.contains(tappedWord)) {
       _scoreNotifier.value++;
 
       // Speed boost logic

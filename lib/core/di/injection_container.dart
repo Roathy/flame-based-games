@@ -8,6 +8,8 @@ import 'package:flame_based_games/features/raining_words_game/data/datasources/r
 import 'package:flame_based_games/features/raining_words_game/data/repositories/raining_words_repository_impl.dart';
 import 'package:flame_based_games/features/raining_words_game/domain/repositories/raining_words_repository.dart';
 import 'package:flame_based_games/features/raining_words_game/domain/usecases/get_raining_words_usecase.dart';
+import 'package:flame_based_games/core/theme/flame_game_theme.dart';
+
 import '../games/data/repositories/level_manager.dart';
 
 final sl = GetIt.instance;
@@ -15,6 +17,7 @@ final sl = GetIt.instance;
 Future<void> init() async {
   // Register services and repositories here
   sl.registerLazySingleton(() => LevelManager());
+  sl.registerLazySingleton(() => FlameGameTheme.dark());
 
   // Raining Words Game
   sl.registerLazySingleton<RainingWordsLocalDataSource>(

@@ -14,6 +14,8 @@ import 'package:flame_based_games/core/games/components/portal_effect_component.
 
 import 'package:flame/particles.dart';
 
+import 'package:flame_based_games/core/games/domain/entities/game_level_config.dart';
+
 class BouncingWordsGame extends MirappFlameGame {
   final ValueNotifier<int> _scoreNotifier = ValueNotifier(0);
   final ValueNotifier<int> _mistakesNotifier = ValueNotifier(0);
@@ -32,7 +34,8 @@ class BouncingWordsGame extends MirappFlameGame {
   final Random _random = Random();
   late BouncingWordsGameParameters _gameParameters;
   final Map<WordComponent, Vector2> _wordVelocities = {};
-  final BouncingWordsRepository _bouncingWordsRepository = sl<BouncingWordsRepository>();
+  final BouncingWordsRepository _bouncingWordsRepository =
+      sl<BouncingWordsRepository>();
 
   TextBoxComponent? _targetWordText;
   String? _currentTargetWord;
@@ -45,7 +48,8 @@ class BouncingWordsGame extends MirappFlameGame {
   final ValueNotifier<int> countdownNotifier = ValueNotifier(3);
   final ValueNotifier<bool> showCountdown = ValueNotifier(false);
 
-  BouncingWordsGame({required super.levelConfig});
+  BouncingWordsGame({required GameLevelConfig levelConfig})
+      : super(levelConfig: levelConfig);
 
   @override
   Future<void> onLoad() async {
@@ -61,13 +65,7 @@ class BouncingWordsGame extends MirappFlameGame {
       _targetWordText = TextBoxComponent(
         text: '',
         anchor: Anchor.topCenter,
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            fontSize: 32,
-            color: Colors.yellow, // Make color distinct
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        textRenderer: TextPaint(style: theme.uiTextStyle),
         boxConfig: TextBoxConfig(
           maxWidth: size.x * 0.8, // 80% of screen width
           timePerChar: 0.0,
@@ -117,7 +115,7 @@ class BouncingWordsGame extends MirappFlameGame {
             speed: initialSpeed,
             child: CircleParticle(
               radius: particleRadius + _random.nextDouble() * particleRadius,
-              paint: Paint()..color = color ?? _generateReadableColor(),
+              paint: Paint()..color = color ?? theme.neutralColor,
             ),
           );
         },
@@ -194,7 +192,8 @@ class BouncingWordsGame extends MirappFlameGame {
     _activeWords.clear();
 
     final Set<String> wordsToSpawnSet = {_currentTargetWord!};
-    final distractors = _gameParameters.wordPool.where((word) => word != _currentTargetWord).toList();
+    final distractors =
+        _gameParameters.wordPool.where((word) => word != _currentTargetWord).toList();
     distractors.shuffle(_random);
 
     while (wordsToSpawnSet.length < _gameParameters.wordCount) {
@@ -211,7 +210,7 @@ class BouncingWordsGame extends MirappFlameGame {
     add(
       PortalEffectComponent(
         position: size / 2,
-        particleColor: _generateReadableColor(),
+        particleColor: theme.neutralColor,
         duration: Duration(milliseconds: (spawnDuration * 1000).round()),
       ),
     );
@@ -243,6 +242,7 @@ class BouncingWordsGame extends MirappFlameGame {
         lifespan: 0.3,
         speed: 150,
         particleRadius: 1.5,
+        color: theme.neutralColor,
       ),
     );
   }
@@ -256,7 +256,7 @@ class BouncingWordsGame extends MirappFlameGame {
 
     final wordComponent = WordComponent(
       word: word,
-      color: _generateReadableColor(),
+      theme: theme,
       onTapped: () {
         if (word == _currentTargetWord) {
           _scoreNotifier.value++;
@@ -306,15 +306,6 @@ class BouncingWordsGame extends MirappFlameGame {
     final displayWords = List<String>.from(_currentSentence!.words);
     displayWords[_hiddenWordIndex] = '____';
     _targetWordText?.text = displayWords.join(' ');
-  }
-
-  Color _generateReadableColor() {
-    return HSLColor.fromAHSL(
-      1.0,
-      _random.nextDouble() * 360,
-      0.7 + _random.nextDouble() * 0.3,
-      0.6 + _random.nextDouble() * 0.2,
-    ).toColor();
   }
 
   GameStatus _internalGameStatus = GameStatus.initial;

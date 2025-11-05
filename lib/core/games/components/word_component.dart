@@ -5,30 +5,32 @@ import 'package:flame/events.dart';
 import 'package:flame/particles.dart';
 import 'package:flame/effects.dart';
 import 'package:flame_based_games/core/games/components/fading_text_component.dart';
+import 'package:flame_based_games/core/theme/flame_game_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flame_based_games/features/bouncing_words_game/flame/bouncing_words_game.dart';
 
 class WordComponent extends TextComponent with TapCallbacks {
   final String word;
   final bool Function() onTapped;
-  final Color color;
+  FlameGameTheme theme;
   bool animationTriggered = false;
 
   WordComponent({
     required this.word,
     required this.onTapped,
-    required this.color,
+    required this.theme,
   }) : super(
           text: word,
           anchor: Anchor.center,
           textRenderer: TextPaint(
-            style: TextStyle(
-              color: color,
-              fontSize: 30.0,
-              fontWeight: FontWeight.bold,
-            ),
+            style: theme.wordTextStyle,
           ),
         );
+
+  void updateTheme(FlameGameTheme newTheme) {
+    theme = newTheme;
+    textRenderer = TextPaint(style: theme.wordTextStyle);
+  }
 
   void shake({bool removeOnComplete = false}) {
     final originalPosition = position.clone();
@@ -88,11 +90,7 @@ class WordComponent extends TextComponent with TapCallbacks {
         anchor: Anchor.center,
         position: position,
         textRenderer: TextPaint(
-          style: const TextStyle(
-            color: Colors.green,
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
-          ),
+          style: theme.uiTextStyle.copyWith(color: theme.correctColor),
         ),
       );
       parent?.add(scoreIndicator);
@@ -114,7 +112,7 @@ class WordComponent extends TextComponent with TapCallbacks {
       (parent as BouncingWordsGame).add(
         (parent as BouncingWordsGame).createExplosionAnimation(
           position: position,
-          color: color,
+          color: theme.neutralColor,
           count: 15,
           lifespan: 0.4,
           speed: 250,
@@ -138,7 +136,7 @@ class WordComponent extends TextComponent with TapCallbacks {
                   (1 - (random.nextDouble() * 0.5)),
               child: CircleParticle(
                 radius: 2 + random.nextDouble() * 2,
-                paint: Paint()..color = color,
+                paint: Paint()..color = theme.neutralColor,
               ),
             ),
           ),

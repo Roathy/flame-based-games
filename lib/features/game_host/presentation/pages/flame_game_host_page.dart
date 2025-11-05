@@ -1,3 +1,5 @@
+import 'package:flame_based_games/core/di/injection_container.dart';
+import 'package:flame_based_games/core/theme/flame_game_theme.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:flame/game.dart';
@@ -26,11 +28,13 @@ class FlameGameHostPage extends StatefulWidget {
 class _FlameGameHostPageState extends State<FlameGameHostPage> {
   MirappFlameGame? _game;
   GameLevelConfig? _levelConfig;
+  late final FlameGameTheme _theme;
   final ValueNotifier<GameStatus> _gameStatusNotifier = ValueNotifier(GameStatus.initial);
 
   @override
   void initState() {
     super.initState();
+    _theme = sl<FlameGameTheme>();
     _loadGame();
   }
 
@@ -137,6 +141,12 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
           },
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.palette),
+            onPressed: () {
+              _game?.cycleTheme();
+            },
+          ),
           if (_game is RainingWordsGame)
             IconButton(
               icon: const Icon(Icons.volume_up),
@@ -158,9 +168,8 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
                     return Center(
                       child: Text(
                         value.toString(),
-                        style: const TextStyle(
+                        style: _theme.uiTextStyle.copyWith(
                           fontSize: 120,
-                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -176,7 +185,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
             child: ValueListenableBuilder<int>(
               valueListenable: _game!.scoreNotifier,
               builder: (context, score, child) {
-                return Text('Score: $score', style: const TextStyle(color: Colors.greenAccent, fontSize: 24));
+                return Text('Score: $score', style: _theme.uiTextStyle.copyWith(color: _theme.correctColor));
               },
             ),
           ),
@@ -186,7 +195,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
             child: ValueListenableBuilder<int>(
               valueListenable: _game!.mistakesNotifier,
               builder: (context, mistakes, child) {
-                return Text('Mistakes: $mistakes', style: const TextStyle(color: Colors.redAccent, fontSize: 24));
+                return Text('Mistakes: $mistakes', style: _theme.uiTextStyle.copyWith(color: _theme.incorrectColor));
               },
             ),
           ),
@@ -196,7 +205,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
             child: ValueListenableBuilder<int>(
               valueListenable: _game!.timeNotifier,
               builder: (context, time, child) {
-                return Text('Time: $time', style: const TextStyle(color: Colors.white, fontSize: 24));
+                return Text('Time: $time', style: _theme.uiTextStyle);
               },
             ),
           ),
