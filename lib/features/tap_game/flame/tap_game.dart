@@ -1,3 +1,4 @@
+import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
 import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
@@ -21,6 +22,9 @@ class TapGame extends MirappFlameGame {
 
   @override
   ValueNotifier<String> get categoryNotifier => ValueNotifier('');
+
+  @override
+  Map<String, Widget Function(BuildContext, FlameGame)> get gameSpecificOverlays => {};
 
   @override
   Future<void> onLoad() async {

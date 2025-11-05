@@ -22,6 +22,8 @@ abstract class MirappFlameGame extends FlameGame {
   ValueNotifier<int> get timeNotifier;
   ValueNotifier<String> get categoryNotifier;
 
+  Map<String, Widget Function(BuildContext, FlameGame)> get gameSpecificOverlays;
+
   MirappFlameGame({required this.levelConfig, required this.theme});
 
   @override

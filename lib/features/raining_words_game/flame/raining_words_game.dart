@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/components/word_component.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
@@ -38,6 +39,9 @@ class RainingWordsGame extends MirappFlameGame {
 
   @override
   ValueNotifier<String> get categoryNotifier => ValueNotifier('');
+
+  @override
+  Map<String, Widget Function(BuildContext, FlameGame)> get gameSpecificOverlays => {};
 
   late FlutterTts flutterTts;
   late final RainingWordsGameParameters _gameParameters;

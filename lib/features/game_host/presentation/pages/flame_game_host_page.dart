@@ -53,34 +53,17 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     if (_levelConfig != null) {
       // Clean up listeners from the old game instance before creating a new one
       _game?.gameStatusNotifier.removeListener(_gameStatusListener);
-      if (_game is BouncingWordsGame) {
-        (_game as BouncingWordsGame).showCountdown.removeListener(_onShowCountdownChanged);
-      }
 
       _game = _createGame(_levelConfig!);
 
       // Add listeners to the new game instance
       _game?.gameStatusNotifier.addListener(_gameStatusListener);
-      if (_game is BouncingWordsGame) {
-        (_game as BouncingWordsGame).showCountdown.addListener(_onShowCountdownChanged);
-      }
 
       _gameStatusNotifier.value = GameStatus.initial;
     } else {
       _gameStatusNotifier.value = GameStatus.gameOver;
     }
     setState(() {});
-  }
-
-  void _onShowCountdownChanged() {
-    final game = _game;
-    if (game is BouncingWordsGame) {
-      if (game.showCountdown.value) {
-        game.overlays.add('countdown');
-      } else {
-        game.overlays.remove('countdown');
-      }
-    }
   }
 
   void _gameStatusListener() {
@@ -115,9 +98,6 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   void dispose() {
     _gameStatusNotifier.dispose();
     _game?.gameStatusNotifier.removeListener(_gameStatusListener);
-    if (_game is BouncingWordsGame) {
-      (_game as BouncingWordsGame).showCountdown.removeListener(_onShowCountdownChanged);
-    }
     super.dispose();
   }
 
@@ -165,22 +145,8 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
           GameWidget(
             game: _game!,
             overlayBuilderMap: {
-              'countdown': (context, game) {
-                return ValueListenableBuilder<int>(
-                  valueListenable: (game as BouncingWordsGame).countdownNotifier,
-                  builder: (context, value, child) {
-                    return Center(
-                      child: Text(
-                        value.toString(),
-                        style: _currentThemeNotifier.value.uiTextStyle.copyWith(
-                          fontSize: 120,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+              ...
+              _game!.gameSpecificOverlays,
             },
           ),
           Positioned(

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/components/word_component.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
@@ -32,6 +33,28 @@ class BouncingWordsGame extends MirappFlameGame {
   @override
   ValueNotifier<String> get categoryNotifier => _categoryNotifier;
 
+  @override
+  Map<String, Widget Function(BuildContext, FlameGame)> get gameSpecificOverlays => {
+        'countdown': (context, game) {
+          final bouncingGame = game as BouncingWordsGame;
+          return ValueListenableBuilder<int>(
+            valueListenable: bouncingGame._countdownNotifier,
+            builder: (context, value, child) {
+              if (value == 0) return const SizedBox.shrink();
+              return Center(
+                child: Text(
+                  value.toString(),
+                  style: bouncingGame.theme.uiTextStyle.copyWith(
+                    fontSize: 120,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      };
+
   final Random _random = Random();
   late BouncingWordsGameParameters _gameParameters;
   final Map<WordComponent, Vector2> _wordVelocities = {};
@@ -46,8 +69,7 @@ class BouncingWordsGame extends MirappFlameGame {
   int _hiddenWordIndex = -1;
   bool _isMainTimerRunning = false;
 
-  final ValueNotifier<int> countdownNotifier = ValueNotifier(3);
-  final ValueNotifier<bool> showCountdown = ValueNotifier(false);
+  final ValueNotifier<int> _countdownNotifier = ValueNotifier(3);
 
   BouncingWordsGame({required GameLevelConfig levelConfig, required FlameGameTheme theme})
       : super(levelConfig: levelConfig, theme: theme);
@@ -132,19 +154,19 @@ class BouncingWordsGame extends MirappFlameGame {
   void _startNextRound() {
     _setNewSentenceChallenge();
 
-    countdownNotifier.value = 3;
-    showCountdown.value = true;
+    _countdownNotifier.value = 3;
+    overlays.add('countdown'); // Add the countdown overlay
 
     late TimerComponent countdownTimer;
     countdownTimer = TimerComponent(
       period: 0.9, // 10% faster than 1 second
       repeat: true,
       onTick: () {
-        final currentVal = countdownNotifier.value;
+        final currentVal = _countdownNotifier.value;
         if (currentVal > 1) {
-          countdownNotifier.value = currentVal - 1;
+          _countdownNotifier.value = currentVal - 1;
         } else {
-          showCountdown.value = false;
+          overlays.remove('countdown'); // Remove the countdown overlay
           _spawnWords();
           // Start the main game timer only after the first countdown
           if (!_isMainTimerRunning) {
