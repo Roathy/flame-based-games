@@ -13,23 +13,32 @@ class WordComponent extends TextComponent with TapCallbacks {
   final String word;
   final bool Function() onTapped;
   FlameGameTheme theme;
+  Color color;
   bool animationTriggered = false;
 
   WordComponent({
     required this.word,
     required this.onTapped,
     required this.theme,
+    required this.color,
   }) : super(
           text: word,
           anchor: Anchor.center,
           textRenderer: TextPaint(
-            style: theme.wordTextStyle,
+            style: theme.wordTextStyle.copyWith(
+              color: color,
+            ),
           ),
         );
 
-  void updateTheme(FlameGameTheme newTheme) {
+  void updateStyle(FlameGameTheme newTheme, Color newColor) {
     theme = newTheme;
-    textRenderer = TextPaint(style: theme.wordTextStyle);
+    color = newColor;
+    textRenderer = TextPaint(
+      style: theme.wordTextStyle.copyWith(
+        color: color,
+      ),
+    );
   }
 
   void shake({bool removeOnComplete = false}) {

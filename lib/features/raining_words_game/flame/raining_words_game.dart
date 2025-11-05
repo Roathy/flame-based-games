@@ -251,6 +251,7 @@ class RainingWordsGame extends MirappFlameGame {
       word: wordToSpawn,
       onTapped: () => _onWordTapped(wordToSpawn),
       theme: theme,
+      color: colorFactory.generate(theme.backgroundColor),
     );
     _wordSpeeds[wordComponent] = randomSpeed;
     add(wordComponent);

@@ -257,6 +257,7 @@ class BouncingWordsGame extends MirappFlameGame {
     final wordComponent = WordComponent(
       word: word,
       theme: theme,
+      color: colorFactory.generate(theme.backgroundColor),
       onTapped: () {
         if (word == _currentTargetWord) {
           _scoreNotifier.value++;

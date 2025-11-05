@@ -7,11 +7,14 @@ import 'package:flutter/material.dart';
 import '../enums/game_status.dart';
 import 'game_level_config.dart';
 
+import 'package:flame_based_games/core/utils/readable_color_factory.dart';
+
 abstract class MirappFlameGame extends FlameGame {
   final GameLevelConfig levelConfig;
   final ValueNotifier<GameStatus> gameStatusNotifier =
       ValueNotifier(GameStatus.initial);
 
+  final colorFactory = ReadableColorFactory();
   late FlameGameTheme theme;
   late final RectangleComponent _background;
 
@@ -59,7 +62,8 @@ abstract class MirappFlameGame extends FlameGame {
 
     // Update all word components
     for (final component in children.whereType<WordComponent>()) {
-      component.updateTheme(theme);
+      final newColor = colorFactory.generate(theme.backgroundColor);
+      component.updateStyle(theme, newColor);
     }
   }
 
