@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/components/word_component.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
 import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
+import 'package:flame_based_games/core/theme/flame_game_theme.dart';
 import 'package:flame_based_games/features/raining_words_game/data/vocabulary_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -45,8 +46,8 @@ class RainingWordsGame extends MirappFlameGame {
   TimerComponent? _spawnTimer;
   TimerComponent? _boostTimer;
 
-  RainingWordsGame({required GameLevelConfig levelConfig})
-      : super(levelConfig: levelConfig);
+  RainingWordsGame({required GameLevelConfig levelConfig, required FlameGameTheme theme})
+      : super(levelConfig: levelConfig, theme: theme);
 
   @override
   Future<void> onLoad() async {

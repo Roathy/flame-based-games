@@ -1,7 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/components/word_component.dart';
 import 'package:flame_based_games/core/theme/flame_game_theme.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import '../enums/game_status.dart';
@@ -15,24 +14,15 @@ abstract class MirappFlameGame extends FlameGame {
       ValueNotifier(GameStatus.initial);
 
   final colorFactory = ReadableColorFactory();
-  late FlameGameTheme theme;
+  final FlameGameTheme theme;
   late final RectangleComponent _background;
-
-  final List<FlameGameTheme> _themes = [
-    FlameGameTheme.dark(),
-    FlameGameTheme.ocean(),
-    FlameGameTheme.light(),
-  ];
-  int _currentThemeIndex = 0;
 
   ValueNotifier<int> get scoreNotifier;
   ValueNotifier<int> get mistakesNotifier;
   ValueNotifier<int> get timeNotifier;
   ValueNotifier<String> get categoryNotifier;
 
-  MirappFlameGame({required this.levelConfig}) {
-    theme = _themes[_currentThemeIndex];
-  }
+  MirappFlameGame({required this.levelConfig, required this.theme});
 
   @override
   Future<void> onLoad() async {
@@ -53,17 +43,14 @@ abstract class MirappFlameGame extends FlameGame {
     }
   }
 
-  void cycleTheme() {
-    _currentThemeIndex = (_currentThemeIndex + 1) % _themes.length;
-    theme = _themes[_currentThemeIndex];
-
+  void updateTheme(FlameGameTheme newTheme) {
     // Update background
-    _background.paint.color = theme.backgroundColor;
+    _background.paint.color = newTheme.backgroundColor;
 
     // Update all word components
     for (final component in children.whereType<WordComponent>()) {
-      final newColor = colorFactory.generate(theme.backgroundColor);
-      component.updateStyle(theme, newColor);
+      final newColor = colorFactory.generate(newTheme.backgroundColor);
+      component.updateStyle(newTheme, newColor);
     }
   }
 

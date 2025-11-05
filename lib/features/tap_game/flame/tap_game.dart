@@ -1,13 +1,14 @@
 import 'package:flame/components.dart';
 import 'package:flame_based_games/core/games/domain/entities/mirapp_flame_game.dart';
 import 'package:flame_based_games/core/games/domain/enums/game_status.dart';
+import 'package:flame_based_games/core/theme/flame_game_theme.dart';
 import 'package:flame_based_games/features/tap_game/domain/entities/tap_game_parameters.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flame_based_games/core/games/domain/entities/game_level_config.dart';
 
 class TapGame extends MirappFlameGame {
-  TapGame({required GameLevelConfig levelConfig}) : super(levelConfig: levelConfig);
+  TapGame({required GameLevelConfig levelConfig, required FlameGameTheme theme}) : super(levelConfig: levelConfig, theme: theme);
 
   @override
   ValueNotifier<int> get scoreNotifier => ValueNotifier(0);
