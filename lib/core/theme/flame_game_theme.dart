@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class FlameGameTheme extends ThemeExtension<FlameGameTheme> {
@@ -38,7 +37,10 @@ class FlameGameTheme extends ThemeExtension<FlameGameTheme> {
   }
 
   @override
-  FlameGameTheme lerp(covariant ThemeExtension<FlameGameTheme>? other, double t) {
+  FlameGameTheme lerp(
+    covariant ThemeExtension<FlameGameTheme>? other,
+    double t,
+  ) {
     if (other is! FlameGameTheme) {
       return this;
     }
@@ -52,57 +54,70 @@ class FlameGameTheme extends ThemeExtension<FlameGameTheme> {
     );
   }
 
-  factory FlameGameTheme.dark() {
+  factory FlameGameTheme.light() {
     return FlameGameTheme(
-      backgroundColor: Color(0xFF1A1A2E), // Base color.
+      backgroundColor: Colors.grey[50]!, // Base color (almost white)
       wordTextStyle: TextStyle(
-        color: Color(0xFFEAEAEA), // High-contrast, easy on the eyes.
+        color: Colors.black, // Near-Black for maximum contrast
         fontSize: 30.0,
         fontWeight: FontWeight.bold,
       ),
       uiTextStyle: TextStyle(
-        color: Color(0xFF9BA4B5), // Muted text for hints/descriptions.
+        color:
+            Colors.black, // UPDATED: Same as wordTextStyle for maximum contrast
         fontSize: 24.0,
       ),
-      correctColor: Color(0xFF00FFC0), // Bright Cyan/Mint for correct answers.
-      incorrectColor: Color(0xFFF9A825), // Bright Gold/Amber for warnings/errors.
-      neutralColor: Color(0xFFE94560), // Vibrant Pink-Red for CTAs/active states.
+      correctColor: Color(0xFF4CAF50), // Standard Green for correct states
+      incorrectColor: Color(0xFFD32F2F), // Deep Red for error states
+      neutralColor: Color(
+        0xFF3F51B5,
+      ), // Deep Indigo/Blue for strong, professional accent
     );
   }
 
   factory FlameGameTheme.ocean() {
     return FlameGameTheme(
-      backgroundColor: Color(0xFF16213E), // Base color.
+      backgroundColor: Color(0xFF4A4A5E), // Warm taupe-gray (middle tone)
       wordTextStyle: TextStyle(
-        color: Color(0xFFFFFAF0), // Creamy white to warm up the navy blue.
+        color: Color(0xFFF5F0E8), // Warm cream (lighter than navy version)
         fontSize: 30.0,
         fontWeight: FontWeight.bold,
       ),
       uiTextStyle: TextStyle(
-        color: Color(0xFF8DA3AD), // Dusty Teal for subordinate text.
+        color: Color(
+          0xFFFFFFFF,
+        ), // UPDATED: Pure white for maximum contrast (8.63:1)
         fontSize: 24.0,
       ),
-      correctColor: Color(0xFF66BB6A), // Muted Lime Green for success.
-      incorrectColor: Color(0xFFEF5350), // Standard Medium Red for errors.
-      neutralColor: Color(0xFFFF5722), // Deep Orange, complementary to blue, for interaction.
+      correctColor: Color(0xFF7FD87F), // Brighter lime green for visibility
+      incorrectColor: Color(0xFFFF6B6B), // Brighter coral-red
+      neutralColor: Color(
+        0xFFFFA500,
+      ), // Pure vibrant orange (complementary to taupe)
     );
   }
 
-  factory FlameGameTheme.light() {
+  factory FlameGameTheme.dark() {
     return FlameGameTheme(
-      backgroundColor: Colors.grey[50]!, // Base color (almost white).
+      backgroundColor: Color(0xFF1A1A2E), // Base color
       wordTextStyle: TextStyle(
-        color: Colors.black, // Near-Black for maximum contrast.
+        color: Color(0xFFEAEAEA), // High-contrast, easy on the eyes
         fontSize: 30.0,
         fontWeight: FontWeight.bold,
       ),
       uiTextStyle: TextStyle(
-        color: Color(0xFF757575), // Medium Gray for secondary information.
+        color: Color(
+          0xFFFFFFFF,
+        ), // UPDATED: Pure white for maximum contrast (17.06:1)
         fontSize: 24.0,
       ),
-      correctColor: Color(0xFF4CAF50), // Standard Green for correct states.
-      incorrectColor: Color(0xFFD32F2F), // Deep Red for error states.
-      neutralColor: Color(0xFF3F51B5), // Deep Indigo/Blue for a strong, professional accent.
+      correctColor: Color(0xFF00FFC0), // Bright Cyan/Mint for correct answers
+      incorrectColor: Color(
+        0xFFF9A825,
+      ), // Bright Gold/Amber for warnings/errors
+      neutralColor: Color(
+        0xFFE94560,
+      ), // Vibrant Pink-Red for CTAs/active states
     );
   }
 }

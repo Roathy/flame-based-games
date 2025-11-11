@@ -24,11 +24,23 @@ class FlameGameHostPage extends StatefulWidget {
   State<FlameGameHostPage> createState() => _FlameGameHostPageState();
 }
 
+typedef _TimerState = ({int time, FlameGameTheme theme});
+
 class _FlameGameHostPageState extends State<FlameGameHostPage> {
   MirappFlameGame? _game;
   GameLevelConfig? _levelConfig;
   late ValueNotifier<FlameGameTheme> _currentThemeNotifier;
   final ValueNotifier<GameStatus> _gameStatusNotifier = ValueNotifier(GameStatus.initial);
+  late ValueNotifier<_TimerState> _timerStateNotifier;
+
+  void _updateTimerState() {
+    if (!mounted || _game == null) return;
+    _timerStateNotifier.value = (
+      time: _game!.timeNotifier.value,
+      theme: _currentThemeNotifier.value
+    );
+  }
+
 
   @override
   void initState() {
@@ -40,6 +52,7 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _currentThemeNotifier = ValueNotifier(Theme.of(context).extension<FlameGameTheme>()!);
+    _timerStateNotifier = ValueNotifier((time: 0, theme: _currentThemeNotifier.value));
   }
 
   Future<void> _loadGame() async {
@@ -53,11 +66,15 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     if (_levelConfig != null) {
       // Clean up listeners from the old game instance before creating a new one
       _game?.gameStatusNotifier.removeListener(_gameStatusListener);
+      _game?.timeNotifier.removeListener(_updateTimerState);
+      _currentThemeNotifier.removeListener(_updateTimerState);
 
       _game = _createGame(_levelConfig!);
 
       // Add listeners to the new game instance
       _game?.gameStatusNotifier.addListener(_gameStatusListener);
+      _game?.timeNotifier.addListener(_updateTimerState);
+      _currentThemeNotifier.addListener(_updateTimerState);
 
       _gameStatusNotifier.value = GameStatus.initial;
     } else {
@@ -97,7 +114,10 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   @override
   void dispose() {
     _gameStatusNotifier.dispose();
+    _timerStateNotifier.dispose();
     _game?.gameStatusNotifier.removeListener(_gameStatusListener);
+    _game?.timeNotifier.removeListener(_updateTimerState);
+    _currentThemeNotifier.removeListener(_updateTimerState);
     super.dispose();
   }
 
@@ -152,30 +172,45 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
           Positioned(
             top: 10,
             right: 10,
-            child: ValueListenableBuilder<int>(
-              valueListenable: _game!.scoreNotifier,
-              builder: (context, score, child) {
-                return Text('Score: $score', style: _currentThemeNotifier.value.uiTextStyle.copyWith(color: _currentThemeNotifier.value.correctColor));
+            child: ValueListenableBuilder<FlameGameTheme>(
+              valueListenable: _currentThemeNotifier,
+              builder: (context, theme, child) {
+                return ValueListenableBuilder<int>(
+                  valueListenable: _game!.scoreNotifier,
+                  builder: (context, score, child) {
+                    return Text('Score: $score', style: theme.uiTextStyle.copyWith(color: theme.correctColor));
+                  },
+                );
               },
             ),
           ),
           Positioned(
             top: 10,
             left: 10,
-            child: ValueListenableBuilder<int>(
-              valueListenable: _game!.mistakesNotifier,
-              builder: (context, mistakes, child) {
-                return Text('Mistakes: $mistakes', style: _currentThemeNotifier.value.uiTextStyle.copyWith(color: _currentThemeNotifier.value.incorrectColor));
+            child: ValueListenableBuilder<FlameGameTheme>(
+              valueListenable: _currentThemeNotifier,
+              builder: (context, theme, child) {
+                return ValueListenableBuilder<int>(
+                  valueListenable: _game!.mistakesNotifier,
+                  builder: (context, mistakes, child) {
+                    return Text('Mistakes: $mistakes', style: theme.uiTextStyle.copyWith(color: theme.incorrectColor));
+                  },
+                );
               },
             ),
           ),
           Positioned(
             bottom: 10,
             right: 10,
-            child: ValueListenableBuilder<int>(
-              valueListenable: _game!.timeNotifier,
-              builder: (context, time, child) {
-                return Text('Time: $time', style: _currentThemeNotifier.value.uiTextStyle);
+            child: ValueListenableBuilder<FlameGameTheme>(
+              valueListenable: _currentThemeNotifier,
+              builder: (context, theme, child) {
+                return ValueListenableBuilder<int>(
+                  valueListenable: _game!.timeNotifier,
+                  builder: (context, time, child) {
+                    return Text('Time: $time', style: theme.uiTextStyle);
+                  },
+                );
               },
             ),
           ),

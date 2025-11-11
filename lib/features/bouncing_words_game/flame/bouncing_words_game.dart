@@ -10,6 +10,8 @@ import 'package:flame_based_games/features/bouncing_words_game/domain/entities/s
 import 'package:flame_based_games/features/bouncing_words_game/domain/entities/bouncing_words_game_parameters.dart';
 import 'package:flame_based_games/core/di/injection_container.dart';
 import 'package:flame_based_games/features/bouncing_words_game/domain/repositories/bouncing_words_repository.dart';
+
+import 'package:flame_based_games/core/theme/game_banner_theme.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flame_based_games/core/games/components/portal_effect_component.dart';
@@ -37,16 +39,27 @@ class BouncingWordsGame extends MirappFlameGame {
   Map<String, Widget Function(BuildContext, FlameGame)> get gameSpecificOverlays => {
         'countdown': (context, game) {
           final bouncingGame = game as BouncingWordsGame;
+          final bannerTheme = Theme.of(context).extension<GameBannerTheme>();
+          if (bannerTheme == null) {
+            return const SizedBox.shrink();
+          }
           return ValueListenableBuilder<int>(
             valueListenable: bouncingGame._countdownNotifier,
             builder: (context, value, child) {
               if (value == 0) return const SizedBox.shrink();
               return Center(
-                child: Text(
-                  value.toString(),
-                  style: bouncingGame.theme.uiTextStyle.copyWith(
-                    fontSize: 120,
-                    fontWeight: FontWeight.bold,
+                child: Container(
+                  width: double.infinity,
+                  height: game.size.y * 0.18,
+                  color: bannerTheme.bannerBackground,
+                  alignment: Alignment.center,
+                  child: Text(
+                    value.toString(),
+                    style: bouncingGame.theme.uiTextStyle.copyWith(
+                      fontSize: 120,
+                      fontWeight: FontWeight.bold,
+                      color: bannerTheme.timerTextPrimary,
+                    ),
                   ),
                 ),
               );
@@ -68,6 +81,7 @@ class BouncingWordsGame extends MirappFlameGame {
   Sentence? _currentSentence;
   int _hiddenWordIndex = -1;
   bool _isMainTimerRunning = false;
+  bool _themeToggleHack = false;
 
   final ValueNotifier<int> _countdownNotifier = ValueNotifier(3);
 
@@ -88,7 +102,7 @@ class BouncingWordsGame extends MirappFlameGame {
       _targetWordText = TextBoxComponent(
         text: '',
         anchor: Anchor.topCenter,
-        textRenderer: TextPaint(style: theme.uiTextStyle),
+        textRenderer: TextPaint(style: theme.wordTextStyle),
         boxConfig: TextBoxConfig(
           maxWidth: size.x * 0.8, // 80% of screen width
           timePerChar: 0.0,
@@ -110,6 +124,26 @@ class BouncingWordsGame extends MirappFlameGame {
       maxWidth: size.x * 0.8,
       timePerChar: 0.0,
     );
+  }
+
+  @override
+  void updateTheme(FlameGameTheme newTheme) {
+    super.updateTheme(newTheme);
+
+    _targetWordText?.textRenderer = TextPaint(
+      style: TextStyle(
+        color: newTheme.wordTextStyle.color,
+        fontSize: newTheme.wordTextStyle.fontSize,
+        fontWeight: newTheme.wordTextStyle.fontWeight,
+      ),
+    );
+    // Force the component to redraw with the new style by toggling a space
+    if (_themeToggleHack) {
+      _targetWordText?.text = _targetWordText!.text.trim();
+    } else {
+      _targetWordText?.text = '${_targetWordText!.text} ';
+    }
+    _themeToggleHack = !_themeToggleHack;
   }
 
   ParticleSystemComponent createExplosionAnimation({

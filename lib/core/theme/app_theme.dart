@@ -1,3 +1,4 @@
+import 'package:flame_based_games/core/theme/game_banner_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flame_based_games/core/theme/flame_game_theme.dart';
 
@@ -164,5 +165,10 @@ ThemeData buildAppTheme() {
     // Add other theme properties as needed, e.g., inputDecorationTheme, iconTheme
   ).copyWith(extensions: <ThemeExtension<dynamic>>[
     FlameGameTheme.dark(),
+    const GameBannerTheme(
+      bannerBackground: Color.fromARGB(204, 25, 25, 25),
+      timerTextPrimary: Color(0xFFF5F5F5),
+      timerTextSecondary: Color(0xFFE8E8E8),
+    ),
   ]);
 }
