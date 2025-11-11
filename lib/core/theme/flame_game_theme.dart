@@ -53,56 +53,56 @@ class FlameGameTheme extends ThemeExtension<FlameGameTheme> {
   }
 
   factory FlameGameTheme.dark() {
-    return const FlameGameTheme(
-      backgroundColor: Color(0xFF1A1A2E), // Azul oscuro suave
+    return FlameGameTheme(
+      backgroundColor: Color(0xFF1A1A2E), // Base color.
       wordTextStyle: TextStyle(
-        color: Colors.white,
+        color: Color(0xFFEAEAEA), // High-contrast, easy on the eyes.
         fontSize: 30.0,
         fontWeight: FontWeight.bold,
       ),
       uiTextStyle: TextStyle(
-        color: Color(0xFFE0E0E0), // Light grey for UI text
+        color: Color(0xFF9BA4B5), // Muted text for hints/descriptions.
         fontSize: 24.0,
       ),
-      correctColor: Color(0xFF50FA7B),
-      incorrectColor: Color(0xFFFF5555),
-      neutralColor: Color(0xFF8BE9FD),
+      correctColor: Color(0xFF00FFC0), // Bright Cyan/Mint for correct answers.
+      incorrectColor: Color(0xFFF9A825), // Bright Gold/Amber for warnings/errors.
+      neutralColor: Color(0xFFE94560), // Vibrant Pink-Red for CTAs/active states.
     );
   }
 
   factory FlameGameTheme.ocean() {
-    return const FlameGameTheme(
-      backgroundColor: Color(0xFF16213E), // Azul marino profundo
+    return FlameGameTheme(
+      backgroundColor: Color(0xFF16213E), // Base color.
       wordTextStyle: TextStyle(
-        color: Colors.white,
+        color: Color(0xFFFFFAF0), // Creamy white to warm up the navy blue.
         fontSize: 30.0,
         fontWeight: FontWeight.bold,
       ),
       uiTextStyle: TextStyle(
-        color: Color(0xFFE0E0E0),
+        color: Color(0xFF8DA3AD), // Dusty Teal for subordinate text.
         fontSize: 24.0,
       ),
-      correctColor: Color(0xFF00FFC6),
-      incorrectColor: Color(0xFFF93822),
-      neutralColor: Color(0xFFE94560),
+      correctColor: Color(0xFF66BB6A), // Muted Lime Green for success.
+      incorrectColor: Color(0xFFEF5350), // Standard Medium Red for errors.
+      neutralColor: Color(0xFFFF5722), // Deep Orange, complementary to blue, for interaction.
     );
   }
 
   factory FlameGameTheme.light() {
     return FlameGameTheme(
-      backgroundColor: Colors.grey[50]!, // Gris muy claro
-      wordTextStyle: const TextStyle(
-        color: Colors.black,
+      backgroundColor: Colors.grey[50]!, // Base color (almost white).
+      wordTextStyle: TextStyle(
+        color: Colors.black, // Near-Black for maximum contrast.
         fontSize: 30.0,
         fontWeight: FontWeight.bold,
       ),
-      uiTextStyle: const TextStyle(
-        color: Color(0xFF333333),
+      uiTextStyle: TextStyle(
+        color: Color(0xFF757575), // Medium Gray for secondary information.
         fontSize: 24.0,
       ),
-      correctColor: const Color(0xFF2E7D32),
-      incorrectColor: const Color(0xFFC62828),
-      neutralColor: const Color(0xFF1565C0),
+      correctColor: Color(0xFF4CAF50), // Standard Green for correct states.
+      incorrectColor: Color(0xFFD32F2F), // Deep Red for error states.
+      neutralColor: Color(0xFF3F51B5), // Deep Indigo/Blue for a strong, professional accent.
     );
   }
 }
