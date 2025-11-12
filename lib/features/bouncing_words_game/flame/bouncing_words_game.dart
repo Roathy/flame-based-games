@@ -401,20 +401,20 @@ class BouncingWordsGame extends MirappFlameGame {
 
       component.position += velocity * dt;
 
-      // Bounce off edges
-      if (component.position.x < 0) {
-        component.position.x = 0;
+      final halfSize = component.size / 2;
+      if (component.position.x - halfSize.x < 0) {
+        component.position.x = halfSize.x;
         velocity.x *= -1;
-      } else if (component.position.x + component.size.x > size.x) {
-        component.position.x = size.x - component.size.x;
+      } else if (component.position.x + halfSize.x > size.x) {
+        component.position.x = size.x - halfSize.x;
         velocity.x *= -1;
       }
 
-      if (component.position.y < 0) {
-        component.position.y = 0;
+      if (component.position.y - halfSize.y < 0) {
+        component.position.y = halfSize.y;
         velocity.y *= -1;
-      } else if (component.position.y + component.size.y > size.y) {
-        component.position.y = size.y - component.size.y;
+      } else if (component.position.y + halfSize.y > size.y) {
+        component.position.y = size.y - halfSize.y;
         velocity.y *= -1;
       }
     }
