@@ -20,11 +20,14 @@ import 'package:flame/particles.dart';
 
 import 'package:flame_based_games/core/games/domain/entities/game_level_config.dart';
 
+typedef _SentenceState = ({String sentence, FlameGameTheme theme});
+
 class BouncingWordsGame extends MirappFlameGame {
   final ValueNotifier<int> _scoreNotifier = ValueNotifier(0);
   final ValueNotifier<int> _mistakesNotifier = ValueNotifier(0);
   final ValueNotifier<int> _timeNotifier = ValueNotifier(45);
   final ValueNotifier<String> _categoryNotifier = ValueNotifier('');
+  late final ValueNotifier<_SentenceState> _sentenceStateNotifier;
 
   @override
   ValueNotifier<int> get scoreNotifier => _scoreNotifier;
@@ -66,6 +69,25 @@ class BouncingWordsGame extends MirappFlameGame {
             },
           );
         },
+        'sentence': (context, game) {
+          final bouncingGame = game as BouncingWordsGame;
+          return ValueListenableBuilder<_SentenceState>(
+            valueListenable: bouncingGame._sentenceStateNotifier,
+            builder: (context, state, child) {
+              if (state.sentence.isEmpty) return const SizedBox.shrink();
+              return Positioned(
+                top: 40,
+                left: game.size.x * 0.1,
+                right: game.size.x * 0.1,
+                child: Text(
+                  state.sentence,
+                  style: state.theme.wordTextStyle,
+                  textAlign: TextAlign.center,
+                ),
+              );
+            },
+          );
+        },
       };
 
   final Random _random = Random();
@@ -74,19 +96,19 @@ class BouncingWordsGame extends MirappFlameGame {
   final BouncingWordsRepository _bouncingWordsRepository =
       sl<BouncingWordsRepository>();
 
-  TextBoxComponent? _targetWordText;
   String? _currentTargetWord;
   final List<String> _activeWords = [];
   List<Sentence> _sentences = [];
   Sentence? _currentSentence;
   int _hiddenWordIndex = -1;
   bool _isMainTimerRunning = false;
-  bool _themeToggleHack = false;
 
   final ValueNotifier<int> _countdownNotifier = ValueNotifier(3);
 
   BouncingWordsGame({required GameLevelConfig levelConfig, required FlameGameTheme theme})
-      : super(levelConfig: levelConfig, theme: theme);
+      : super(levelConfig: levelConfig, theme: theme) {
+    _sentenceStateNotifier = ValueNotifier((sentence: '', theme: theme));
+  }
 
   @override
   Future<void> onLoad() async {
@@ -99,17 +121,7 @@ class BouncingWordsGame extends MirappFlameGame {
 
       _sentences = await _bouncingWordsRepository.getSentences();
 
-      _targetWordText = TextBoxComponent(
-        text: '',
-        anchor: Anchor.topCenter,
-        textRenderer: TextPaint(style: theme.wordTextStyle),
-        boxConfig: TextBoxConfig(
-          maxWidth: size.x * 0.8, // 80% of screen width
-          timePerChar: 0.0,
-        ),
-      );
-
-      camera.viewport.add(_targetWordText!);
+      overlays.add('sentence');
     } catch (e) {
       print('Error loading BouncingWordsGame: $e');
       gameStatusNotifier.value = GameStatus.error;
@@ -119,31 +131,15 @@ class BouncingWordsGame extends MirappFlameGame {
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    _targetWordText?.position = Vector2(size.x / 2, 40);
-    _targetWordText?.boxConfig = TextBoxConfig(
-      maxWidth: size.x * 0.8,
-      timePerChar: 0.0,
-    );
   }
 
   @override
   void updateTheme(FlameGameTheme newTheme) {
     super.updateTheme(newTheme);
-
-    _targetWordText?.textRenderer = TextPaint(
-      style: TextStyle(
-        color: newTheme.wordTextStyle.color,
-        fontSize: newTheme.wordTextStyle.fontSize,
-        fontWeight: newTheme.wordTextStyle.fontWeight,
-      ),
+    _sentenceStateNotifier.value = (
+      sentence: _sentenceStateNotifier.value.sentence,
+      theme: newTheme,
     );
-    // Force the component to redraw with the new style by toggling a space
-    if (_themeToggleHack) {
-      _targetWordText?.text = _targetWordText!.text.trim();
-    } else {
-      _targetWordText?.text = '${_targetWordText!.text} ';
-    }
-    _themeToggleHack = !_themeToggleHack;
   }
 
   ParticleSystemComponent createExplosionAnimation({
@@ -233,7 +229,10 @@ class BouncingWordsGame extends MirappFlameGame {
     _currentSentence = null;
     _hiddenWordIndex = -1;
     _isMainTimerRunning = false;
-    _targetWordText?.text = '';
+    _sentenceStateNotifier.value = (
+      sentence: '',
+      theme: _sentenceStateNotifier.value.theme,
+    );
     _activeWords.clear();
     _wordVelocities.clear();
     removeAll(children.whereType<WordComponent>());
@@ -319,7 +318,10 @@ class BouncingWordsGame extends MirappFlameGame {
         if (word == _currentTargetWord) {
           _scoreNotifier.value++;
 
-          _targetWordText?.text = _currentSentence!.text; // Show completed sentence
+          _sentenceStateNotifier.value = (
+            sentence: _currentSentence!.text,
+            theme: _sentenceStateNotifier.value.theme,
+          ); // Show completed sentence
 
           // --- Round Clear Logic ---
           final otherWords = children.whereType<WordComponent>().toList();
@@ -363,7 +365,10 @@ class BouncingWordsGame extends MirappFlameGame {
 
     final displayWords = List<String>.from(_currentSentence!.words);
     displayWords[_hiddenWordIndex] = '____';
-    _targetWordText?.text = displayWords.join(' ');
+    _sentenceStateNotifier.value = (
+      sentence: displayWords.join(' '),
+      theme: _sentenceStateNotifier.value.theme,
+    );
   }
 
   GameStatus _internalGameStatus = GameStatus.initial;
