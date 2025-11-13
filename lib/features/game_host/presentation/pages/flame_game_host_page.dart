@@ -1,9 +1,11 @@
 import 'package:flame_based_games/core/theme/flame_game_theme.dart';
+import 'package:flame_based_games/core/theme/theme_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:flame/game.dart';
 import 'package:flame_based_games/features/raining_words_game/flame/raining_words_game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/games/data/repositories/level_manager.dart';
 import '../../../../core/games/domain/entities/game_level_config.dart';
 import '../../../../core/games/domain/entities/mirapp_flame_game.dart';
@@ -15,44 +17,24 @@ import '../widgets/game_overlay.dart';
 
 import '../../../bouncing_words_game/flame/bouncing_words_game.dart';
 
-class FlameGameHostPage extends StatefulWidget {
+class FlameGameHostPage extends ConsumerStatefulWidget {
   final String levelId;
 
   const FlameGameHostPage({super.key, required this.levelId});
 
   @override
-  State<FlameGameHostPage> createState() => _FlameGameHostPageState();
+  ConsumerState<FlameGameHostPage> createState() => _FlameGameHostPageState();
 }
 
-typedef _TimerState = ({int time, FlameGameTheme theme});
-
-class _FlameGameHostPageState extends State<FlameGameHostPage> {
+class _FlameGameHostPageState extends ConsumerState<FlameGameHostPage> {
   MirappFlameGame? _game;
   GameLevelConfig? _levelConfig;
-  late ValueNotifier<FlameGameTheme> _currentThemeNotifier;
   final ValueNotifier<GameStatus> _gameStatusNotifier = ValueNotifier(GameStatus.initial);
-  late ValueNotifier<_TimerState> _timerStateNotifier;
-
-  void _updateTimerState() {
-    if (!mounted || _game == null) return;
-    _timerStateNotifier.value = (
-      time: _game!.timeNotifier.value,
-      theme: _currentThemeNotifier.value
-    );
-  }
-
 
   @override
   void initState() {
     super.initState();
     _loadGame();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _currentThemeNotifier = ValueNotifier(Theme.of(context).extension<FlameGameTheme>()!);
-    _timerStateNotifier = ValueNotifier((time: 0, theme: _currentThemeNotifier.value));
   }
 
   Future<void> _loadGame() async {
@@ -66,21 +48,21 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     if (_levelConfig != null) {
       // Clean up listeners from the old game instance before creating a new one
       _game?.gameStatusNotifier.removeListener(_gameStatusListener);
-      _game?.timeNotifier.removeListener(_updateTimerState);
-      _currentThemeNotifier.removeListener(_updateTimerState);
 
-      _game = _createGame(_levelConfig!);
+      // Read the current theme from the provider to create the game
+      final currentTheme = ref.read(currentFlameThemeProvider);
+      _game = _createGame(_levelConfig!, currentTheme);
 
       // Add listeners to the new game instance
       _game?.gameStatusNotifier.addListener(_gameStatusListener);
-      _game?.timeNotifier.addListener(_updateTimerState);
-      _currentThemeNotifier.addListener(_updateTimerState);
 
       _gameStatusNotifier.value = GameStatus.initial;
     } else {
       _gameStatusNotifier.value = GameStatus.gameOver;
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _gameStatusListener() {
@@ -89,15 +71,15 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
     }
   }
 
-  MirappFlameGame? _createGame(GameLevelConfig config) {
+  MirappFlameGame? _createGame(GameLevelConfig config, FlameGameTheme theme) {
     try {
       switch (config.gameType) {
         case FlameGameType.tapGame:
-          return TapGame(levelConfig: config, theme: _currentThemeNotifier.value);
+          return TapGame(levelConfig: config, theme: theme);
         case FlameGameType.rainingWordsGame:
-          return RainingWordsGame(levelConfig: config, theme: _currentThemeNotifier.value);
+          return RainingWordsGame(levelConfig: config, theme: theme);
         case FlameGameType.bouncingWordsGame:
-          return BouncingWordsGame(levelConfig: config, theme: _currentThemeNotifier.value);
+          return BouncingWordsGame(levelConfig: config, theme: theme);
         default:
           throw UnimplementedError(
             'Game type not implemented: \${config.gameType}',
@@ -114,15 +96,14 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   @override
   void dispose() {
     _gameStatusNotifier.dispose();
-    _timerStateNotifier.dispose();
     _game?.gameStatusNotifier.removeListener(_gameStatusListener);
-    _game?.timeNotifier.removeListener(_updateTimerState);
-    _currentThemeNotifier.removeListener(_updateTimerState);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final flameGameTheme = ref.watch(currentFlameThemeProvider);
+
     if (_levelConfig == null && _gameStatusNotifier.value != GameStatus.gameOver) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -172,45 +153,30 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
           Positioned(
             top: 10,
             right: 10,
-            child: ValueListenableBuilder<FlameGameTheme>(
-              valueListenable: _currentThemeNotifier,
-              builder: (context, theme, child) {
-                return ValueListenableBuilder<int>(
-                  valueListenable: _game!.scoreNotifier,
-                  builder: (context, score, child) {
-                    return Text('Score: $score', style: theme.uiTextStyle.copyWith(color: theme.correctColor));
-                  },
-                );
+            child: ValueListenableBuilder<int>(
+              valueListenable: _game!.scoreNotifier,
+              builder: (context, score, child) {
+                return Text('Score: $score', style: flameGameTheme.uiTextStyle.copyWith(color: flameGameTheme.correctColor));
               },
             ),
           ),
           Positioned(
             top: 10,
             left: 10,
-            child: ValueListenableBuilder<FlameGameTheme>(
-              valueListenable: _currentThemeNotifier,
-              builder: (context, theme, child) {
-                return ValueListenableBuilder<int>(
-                  valueListenable: _game!.mistakesNotifier,
-                  builder: (context, mistakes, child) {
-                    return Text('Mistakes: $mistakes', style: theme.uiTextStyle.copyWith(color: theme.incorrectColor));
-                  },
-                );
+            child: ValueListenableBuilder<int>(
+              valueListenable: _game!.mistakesNotifier,
+              builder: (context, mistakes, child) {
+                return Text('Mistakes: $mistakes', style: flameGameTheme.uiTextStyle.copyWith(color: flameGameTheme.incorrectColor));
               },
             ),
           ),
           Positioned(
             bottom: 10,
             right: 10,
-            child: ValueListenableBuilder<FlameGameTheme>(
-              valueListenable: _currentThemeNotifier,
-              builder: (context, theme, child) {
-                return ValueListenableBuilder<int>(
-                  valueListenable: _game!.timeNotifier,
-                  builder: (context, time, child) {
-                    return Text('Time: $time', style: theme.uiTextStyle);
-                  },
-                );
+            child: ValueListenableBuilder<int>(
+              valueListenable: _game!.timeNotifier,
+              builder: (context, time, child) {
+                return Text('Time: $time', style: flameGameTheme.uiTextStyle);
               },
             ),
           ),
@@ -238,20 +204,9 @@ class _FlameGameHostPageState extends State<FlameGameHostPage> {
   }
 
   void _cycleTheme() {
-    final currentTheme = _currentThemeNotifier.value;
-    final allThemes = [
-      FlameGameTheme.dark(),
-      FlameGameTheme.ocean(),
-      FlameGameTheme.light(),
-    ];
-    final currentIndex = allThemes.indexWhere((theme) =>
-        theme.backgroundColor == currentTheme.backgroundColor &&
-        theme.wordTextStyle == currentTheme.wordTextStyle); // Simple comparison for now
-    final nextIndex = (currentIndex + 1) % allThemes.length;
-    _currentThemeNotifier.value = allThemes[nextIndex];
-
+    ref.read(currentFlameThemeProvider.notifier).cycleTheme();
     // Update the game's theme if a game is active
-    _game?.updateTheme(_currentThemeNotifier.value);
+    _game?.updateTheme(ref.read(currentFlameThemeProvider));
   }
 
   Widget _buildErrorScreen() {

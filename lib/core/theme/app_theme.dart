@@ -91,7 +91,32 @@ class AppTextStyles {
 }
 
 // Function to build the application's ThemeData
-ThemeData buildAppTheme() {
+ThemeData buildAppTheme({FlameGameTheme? flameGameTheme}) {
+  final selectedFlameGameTheme = flameGameTheme ?? FlameGameTheme.dark();
+
+  // Determine the GameBannerTheme based on the FlameGameTheme's background color
+  final gameBannerTheme =
+      switch (selectedFlameGameTheme.backgroundColor.toARGB32()) {
+    // Ocean Theme Background: 0xFF4A4A5E
+    0xFF4A4A5E => const GameBannerTheme(
+        bannerBackground: Color(0xFFFFD93D), // New Ocean Banner Color
+        timerTextPrimary: Color(0xFF1A1A1A), // New Ocean Timer Text Color
+        timerTextSecondary: Color(0xFFE8E8E8),
+      ),
+    // Dark Theme Background: 0xFF1A1A2E
+    0xFF1A1A2E => const GameBannerTheme(
+        bannerBackground: Color(0xFF00D9FF), // New Dark Banner Color
+        timerTextPrimary: Color(0xFF1A1A1A), // New Dark Timer Text Color
+        timerTextSecondary: Color(0xFFE8E8E8),
+      ),
+    // Light Theme Background is the default
+    _ => const GameBannerTheme(
+        bannerBackground: Color(0xFFFF6B6B), // New Light Banner Color
+        timerTextPrimary: Color(0xFFFFFFFF), // New Light Timer Text Color
+        timerTextSecondary: Color(0xFFE8E8E8),
+      ),
+  };
+
   return ThemeData(
     brightness: Brightness.light,
     primaryColor: AppColors.trustBlue,
@@ -115,7 +140,8 @@ ThemeData buildAppTheme() {
       backgroundColor: AppColors.background,
       foregroundColor: AppColors.textHighEmphasis,
       elevation: 0,
-      titleTextStyle: AppTextStyles.headlineMedium.copyWith(color: AppColors.textHighEmphasis),
+      titleTextStyle:
+          AppTextStyles.headlineMedium.copyWith(color: AppColors.textHighEmphasis),
     ),
 
     // Define Card Theme
@@ -164,11 +190,7 @@ ThemeData buildAppTheme() {
 
     // Add other theme properties as needed, e.g., inputDecorationTheme, iconTheme
   ).copyWith(extensions: <ThemeExtension<dynamic>>[
-    FlameGameTheme.dark(),
-    const GameBannerTheme(
-      bannerBackground: Color.fromARGB(204, 25, 25, 25),
-      timerTextPrimary: Color(0xFFF5F5F5),
-      timerTextSecondary: Color(0xFFE8E8E8),
-    ),
+    selectedFlameGameTheme,
+    gameBannerTheme,
   ]);
 }

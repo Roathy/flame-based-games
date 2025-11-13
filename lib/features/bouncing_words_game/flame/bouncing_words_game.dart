@@ -55,13 +55,16 @@ class BouncingWordsGame extends MirappFlameGame {
                   width: double.infinity,
                   height: game.size.y * 0.18,
                   color: bannerTheme.bannerBackground,
-                  alignment: Alignment.center,
-                  child: Text(
-                    value.toString(),
-                    style: bouncingGame.theme.uiTextStyle.copyWith(
-                      fontSize: 120,
-                      fontWeight: FontWeight.bold,
-                      color: bannerTheme.timerTextPrimary,
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      value.toString(),
+                      style: bouncingGame.theme.uiTextStyle.copyWith(
+                        fontSize: 120,
+                        fontWeight: FontWeight.bold,
+                        color: bannerTheme.timerTextPrimary,
+                      ),
                     ),
                   ),
                 ),
