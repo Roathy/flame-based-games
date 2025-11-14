@@ -49,6 +49,8 @@ class RainingWordsGame extends MirappFlameGame {
 
   TimerComponent? _spawnTimer;
   TimerComponent? _boostTimer;
+  TimerComponent? _gameDurationTimer;
+  TimerComponent? _timeNotifierTimer;
 
   RainingWordsGame({required GameLevelConfig levelConfig, required FlameGameTheme theme})
       : super(levelConfig: levelConfig, theme: theme);
@@ -72,6 +74,19 @@ class RainingWordsGame extends MirappFlameGame {
       print('Error loading RainingWordsGame: $e');
       gameStatusNotifier.value = GameStatus.error;
     }
+  }
+
+  @override
+  void onGameFinished(bool success) {
+    _spawnTimer?.removeFromParent();
+    _spawnTimer = null;
+    _boostTimer?.removeFromParent();
+    _boostTimer = null;
+    _gameDurationTimer?.removeFromParent();
+    _gameDurationTimer = null;
+    _timeNotifierTimer?.removeFromParent();
+    _timeNotifierTimer = null;
+    super.onGameFinished(success);
   }
 
   void _initializeWordPool() {
@@ -184,11 +199,12 @@ class RainingWordsGame extends MirappFlameGame {
     add(_spawnTimer!);
 
     if (shufflingMethod == ShufflingMethod.shuffleBag) {
-      add(TimerComponent(
+      _gameDurationTimer = TimerComponent(
         period: 45,
         onTick: () => onGameFinished(false),
-      ));
-      add(TimerComponent(
+      );
+      add(_gameDurationTimer!);
+      _timeNotifierTimer = TimerComponent(
         period: 1,
         repeat: true,
         onTick: () {
@@ -196,7 +212,8 @@ class RainingWordsGame extends MirappFlameGame {
             _timeNotifier.value--;
           }
         },
-      ));
+      );
+      add(_timeNotifierTimer!);
     }
   }
 
@@ -213,6 +230,8 @@ class RainingWordsGame extends MirappFlameGame {
     _wordsSpawned = 0;
     _spawnTimer = null;
     _boostTimer = null;
+    _gameDurationTimer = null;
+    _timeNotifierTimer = null;
     _wordSpeeds.clear();
     removeAll(children.whereType<TimerComponent>());
     removeAll(children.whereType<WordComponent>()); // Clear existing words

@@ -57,6 +57,10 @@ abstract class MirappFlameGame extends FlameGame {
   }
 
   void onGameFinished(bool success) {
+    if (gameStatusNotifier.value == GameStatus.finished ||
+        gameStatusNotifier.value == GameStatus.gameOver) {
+      return;
+    }
     gameStatusNotifier.value =
         success ? GameStatus.finished : GameStatus.gameOver;
   }

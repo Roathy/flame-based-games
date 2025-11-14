@@ -108,6 +108,8 @@ class BouncingWordsGame extends MirappFlameGame {
   Sentence? _currentSentence;
   int _hiddenWordIndex = -1;
   bool _isMainTimerRunning = false;
+  int _correctAnswers = 0;
+  TimerComponent? _mainGameTimer;
 
   final ValueNotifier<int> _countdownNotifier = ValueNotifier(3);
 
@@ -137,6 +139,13 @@ class BouncingWordsGame extends MirappFlameGame {
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
+  }
+
+  @override
+  void onGameFinished(bool success) {
+    _mainGameTimer?.removeFromParent();
+    _mainGameTimer = null;
+    super.onGameFinished(success);
   }
 
   @override
@@ -207,7 +216,7 @@ class BouncingWordsGame extends MirappFlameGame {
           // Start the main game timer only after the first countdown
           if (!_isMainTimerRunning) {
             _isMainTimerRunning = true;
-            add(TimerComponent(
+            _mainGameTimer = TimerComponent(
               period: 1,
               repeat: true,
               onTick: () {
@@ -217,7 +226,8 @@ class BouncingWordsGame extends MirappFlameGame {
                   onGameFinished(false);
                 }
               },
-            ));
+            );
+            add(_mainGameTimer!);
           }
           // Remove the countdown timer
           countdownTimer.removeFromParent();
@@ -235,6 +245,9 @@ class BouncingWordsGame extends MirappFlameGame {
     _currentSentence = null;
     _hiddenWordIndex = -1;
     _isMainTimerRunning = false;
+    _correctAnswers = 0;
+    _mainGameTimer?.removeFromParent();
+    _mainGameTimer = null;
     _sentenceStateNotifier.value = (
       sentence: '',
       theme: _sentenceStateNotifier.value.theme,
@@ -323,6 +336,7 @@ class BouncingWordsGame extends MirappFlameGame {
       onTapped: () {
         if (word == _currentTargetWord) {
           _scoreNotifier.value++;
+          _correctAnswers++;
 
           _sentenceStateNotifier.value = (
             sentence: _currentSentence!.text,
@@ -338,7 +352,7 @@ class BouncingWordsGame extends MirappFlameGame {
             _activeWords.remove(otherWord.word);
           }
 
-          if (_scoreNotifier.value >= _gameParameters.targetScore) {
+          if (_correctAnswers >= 5) {
             onGameFinished(true);
           } else {
             // Short delay before starting the next round

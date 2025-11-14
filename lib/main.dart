@@ -20,6 +20,7 @@ class MyApp extends ConsumerWidget {
     final currentTheme = ref.watch(currentFlameThemeProvider);
 
     return MaterialApp.router(
+      
       routerConfig: router,
       title: 'Flutter Demo',
       theme: buildAppTheme(flameGameTheme: currentTheme),
